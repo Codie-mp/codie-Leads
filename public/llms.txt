@@ -1,0 +1,34 @@
+# Codie-Leads
+
+> Codie-Leads is a B2B SaaS platform for Go-To-Market (GTM) Engineers and sales teams to discover, enrich, and manage business leads using AI-powered search grounded in Google Maps and Google Search.
+
+## What is Codie-Leads?
+
+Codie-Leads enables sales professionals to find high-quality business leads by describing their Ideal Customer Profile (ICP) in natural language. The platform uses the Gemini AI model with Google Maps and Google Search grounding tools to discover real businesses, extract contact information, and stream results in real time.
+
+## Key Features
+
+- **ICP Web Scraper**: Describe your target customer in plain English and get a list of matching businesses with names, addresses, phone numbers, websites, ratings, and Google Maps links.
+- **Streaming Lead Discovery**: Results appear in real time as the AI searches, using Server-Sent Events (SSE) for a responsive experience.
+- **Google Maps Grounding**: Leverages Gemini's native Google Maps tool for accurate business data including exact Maps URLs and coordinates.
+- **Lead Management**: Save, organize, and track leads through a full pipeline (new → contacted → qualified → customer).
+- **Category Management**: Organize leads into custom categories with color coding.
+- **Campaign Management**: Group leads into outreach campaigns.
+- **AI Enrichment**: Enrich individual leads with decision-maker information, company signals, and LinkedIn profiles.
+- **Export**: Export leads to CSV or Excel for use in external CRMs.
+- **Credit System**: Usage-based billing with credits per lead discovered or enriched.
+
+## Technology
+
+Codie-Leads is built with React (Vite SPA), TypeScript, Express.js, Drizzle ORM, and TiDB (MySQL-compatible distributed database). The AI layer uses the Google Gemini 2.5 Flash model via the `@google/genai` SDK.
+
+## Use Cases
+
+- GTM Engineers building targeted outreach lists
+- Sales Development Representatives (SDRs) prospecting new accounts
+- Marketing teams building segmented lead databases
+- Agencies generating leads for clients across multiple cities and verticals
+
+## Docs
+
+- [ICP Writing Guide](/docs/PERFECT_ICP_GUIDE.md)

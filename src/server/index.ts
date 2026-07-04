@@ -65,7 +65,7 @@ export async function createServer(): Promise<Express> {
   app.use("/api/campaigns", campaignsRoutes);
   app.use("/api/categories", categoriesRoutes);
   app.use("/api/extension", extensionRoutes);
-  app.use("/api", geminiRoutes); // This handles /scrape, /gemini/keywords, etc since the old paths were mostly under /api/gemini or /api/scrape
+  app.use("/api/gemini", geminiRoutes); // All Gemini AI routes under /api/gemini/*
   
   // External API v1
   app.use("/api/v1", apiV1Routes);

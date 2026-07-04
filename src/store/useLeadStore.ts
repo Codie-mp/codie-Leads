@@ -30,6 +30,7 @@ interface LeadState {
   bulkUpdateLeads: (ids: string[], updates: Partial<Lead>) => Promise<void>;
   
   addCategory: (category: any) => Promise<string>;
+  updateCategory: (id: string, category: any) => Promise<void>;
   deleteCategory: (id: string) => Promise<void>;
 
   addCampaign: (campaign: any) => Promise<string>;
@@ -113,6 +114,11 @@ export const useStore = create<LeadState>((set, get) => ({
     return (await res.json()).id;
   },
   
+  updateCategory: async (id, category) => {
+    await fetch(`/api/categories/${id}`, { method: 'PUT', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(category) });
+    await get().fetchData();
+  },
+
   deleteCategory: async (id) => {
     await fetch(`/api/categories/${id}`, { method: 'DELETE' });
     await get().fetchData();
