@@ -1,0 +1,1 @@
+import { db } from './index.js'; import { users } from './schema.js'; import { eq } from 'drizzle-orm'; async function main() { const res = await db.select().from(users).where(eq(users.email, 'admin@codielead.com')); console.log(res); process.exit(0); } main();

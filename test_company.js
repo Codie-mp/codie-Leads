@@ -1,0 +1,1 @@
+import { db } from './src/db/index.js'; import { companies } from './src/db/schema.js'; import { eq } from 'drizzle-orm'; async function main() { const res = await db.select().from(companies).where(eq(companies.id, 'afc54308-8a41-4887-96b2-f19ccacc0bbb')); console.log(res); process.exit(0); } main();

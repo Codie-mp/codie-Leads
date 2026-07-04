@@ -1,0 +1,6 @@
+{
+  "name": "Remix: Remix: GTM Maps Lite",
+  "description": "A colorful, lightweight tool for GTM Engineers to discover and export public business data using Google Maps grounding.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}

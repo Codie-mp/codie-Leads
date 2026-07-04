@@ -1,0 +1,107 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <style>
+    body {
+      width: 300px;
+      padding: 16px;
+      font-family: 'Inter', sans-serif;
+      background-color: #f9fafb;
+    }
+    h2 {
+      font-size: 1.125rem;
+      font-weight: 700;
+      color: #111827;
+      margin-bottom: 12px;
+    }
+    .field {
+      margin-bottom: 8px;
+    }
+    label {
+      display: block;
+      font-size: 0.75rem;
+      font-weight: 600;
+      color: #6b7280;
+      text-transform: uppercase;
+      margin-bottom: 2px;
+    }
+    input {
+      width: 100%;
+      padding: 6px 8px;
+      border: 1px solid #d1d5db;
+      border-radius: 6px;
+      font-size: 0.875rem;
+      outline: none;
+    }
+    input:focus {
+      border-color: #6366f1;
+      box-shadow: 0 0 0 2px rgba(99, 102, 241, 0.1);
+    }
+    button {
+      width: 100%;
+      padding: 8px 12px;
+      background-color: #6366f1;
+      color: white;
+      border: none;
+      border-radius: 6px;
+      font-weight: 600;
+      font-size: 0.875rem;
+      cursor: pointer;
+      margin-top: 12px;
+      transition: background-color 0.2s;
+    }
+    button:hover {
+      background-color: #4f46e5;
+    }
+    button:disabled {
+      background-color: #9ca3af;
+      cursor: not-allowed;
+    }
+    #status {
+      margin-top: 8px;
+      font-size: 0.75rem;
+      text-align: center;
+    }
+    .success {
+      color: #059669;
+    }
+    .error {
+      color: #dc2626;
+    }
+  </style>
+</head>
+<body>
+  <h2>GTM Maps Collector</h2>
+  
+  <div class="field">
+    <label>Name</label>
+    <input type="text" id="name" placeholder="Lead Name">
+  </div>
+  
+  <div class="field">
+    <label>Title</label>
+    <input type="text" id="title" placeholder="Job Title">
+  </div>
+  
+  <div class="field">
+    <label>Company</label>
+    <input type="text" id="company" placeholder="Company Name">
+  </div>
+  
+  <div class="field">
+    <label>Website</label>
+    <input type="text" id="website" placeholder="Company Website">
+  </div>
+  
+  <div class="field">
+    <label>LinkedIn URL</label>
+    <input type="text" id="linkedinUrl" placeholder="LinkedIn Profile URL">
+  </div>
+  
+  <button id="sendBtn">Send to GTM Maps</button>
+  
+  <div id="status"></div>
+
+  <script src="popup.js"></script>
+</body>
+</html>
