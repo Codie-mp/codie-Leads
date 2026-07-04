@@ -100,7 +100,13 @@ router.post("/scrape", async (req, res) => {
         cleanText = cleanText.slice(0, -3);
       }
       const results = JSON.parse(cleanText);
-      res.json({ results });
+      // Ensure no duplicates are returned by checking against existing names
+      const existingNames: string[] = req.body.existingNames || [];
+      const existingNamesSet = new Set(existingNames.map((n: string) => n?.toLowerCase()));
+      const uniqueResults = results.filter(
+        (r: any) => !r.name || !existingNamesSet.has(r.name.toLowerCase())
+      );
+      res.json({ results: uniqueResults });
     } else {
       res.status(500).json({ error: "No text returned from Gemini." });
     }
@@ -146,13 +152,42 @@ router.post("/enrich", async (req, res) => {
   }
 });
 
+/**
+ * POST /api/gemini/search
+ * Streaming endpoint using Server-Sent Events (SSE) for real-time lead discovery.
+ * Uses Google Maps + Google Search grounding tools via the Gemini 2.5 Flash model.
+ */
 router.post("/search", async (req, res) => {
   try {
-    const data = await searchPlaces(req.body.query, req.body.filters);
-    res.json(data);
+    res.setHeader("Content-Type", "text/event-stream");
+    res.setHeader("Cache-Control", "no-cache");
+    res.setHeader("Connection", "keep-alive");
+    res.flushHeaders();
+
+    let lastSentIndex = 0;
+    const onStreamUpdate = (places: any[]) => {
+      const newPlaces = places.slice(lastSentIndex);
+      if (newPlaces.length > 0) {
+        res.write(`data: ${JSON.stringify({ places: newPlaces })}\n\n`);
+        lastSentIndex = places.length;
+      }
+    };
+
+    const data = await searchPlaces(
+      req.body.query,
+      req.body.filters,
+      onStreamUpdate
+    );
+
+    const finalNewPlaces = data.places.slice(lastSentIndex);
+    res.write(
+      `data: ${JSON.stringify({ done: true, places: finalNewPlaces })}\n\n`
+    );
+    res.end();
   } catch (e: any) {
     console.error(e);
-    res.status(500).send(e.message);
+    res.write(`data: ${JSON.stringify({ error: e.message })}\n\n`);
+    res.end();
   }
 });
 
