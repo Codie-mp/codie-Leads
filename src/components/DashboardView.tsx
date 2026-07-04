@@ -1,3 +1,4 @@
+"use client";
 import React from 'react';
 import { useStore } from '@/store/useLeadStore';
 import { motion } from 'motion/react';

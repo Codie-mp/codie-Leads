@@ -8,6 +8,27 @@ function getAi() {
   return aiInstance;
 }
 
+async function withRetry<T>(fn: () => Promise<T>, maxRetries = 4): Promise<T> {
+  let attempt = 0;
+  while (attempt < maxRetries) {
+    try {
+      return await fn();
+    } catch (e: any) {
+      const msg = e?.message?.toLowerCase() || '';
+      if (msg.includes('503') || msg.includes('unavailable') || msg.includes('high demand') || msg.includes('failed to fetch') || msg.includes('fetch failed') || msg.includes('502') || msg.includes('504') || msg.includes('socket hang up') || msg.includes('network error') || msg.includes('timeout')) {
+        attempt++;
+        if (attempt >= maxRetries) throw e;
+        const delay = Math.pow(2, attempt) * 1000 + Math.random() * 500;
+        console.log(`[Gemini API] Network/Demand error (${msg}), retrying in ${Math.round(delay)}ms... (Attempt ${attempt}/${maxRetries})`);
+        await new Promise(r => setTimeout(r, delay));
+      } else {
+        throw e;
+      }
+    }
+  }
+  throw new Error("unreachable");
+}
+
 export interface PlaceResult {
   name: string;
   address: string;
@@ -25,13 +46,14 @@ export interface PlaceResult {
 }
 
 export interface LocationFilterData {
-  type: 'radius' | 'bounding_box';
+  type: 'radius' | 'bounding_box' | 'multi_city';
   center?: { lat: number; lng: number; address?: string };
   radiusKm?: number;
   boundingBox?: {
     northEast: { lat: number; lng: number };
     southWest: { lat: number; lng: number };
   };
+  cities?: string[];
 }
 
 export interface SearchFilters {
@@ -40,6 +62,8 @@ export interface SearchFilters {
   keywords?: string;
   limit?: number;
   locationFilter?: LocationFilterData;
+  excludeDomains?: string[];
+  excludePhones?: string[];
 }
 
 export async function generateKeywordsFromIntent(intent: string): Promise<string[]> {
@@ -56,13 +80,13 @@ export async function generateKeywordsFromIntent(intent: string): Promise<string
       Return ONLY a JSON array of strings. Example: ["Plumbers in Chicago", "Emergency plumbing services Chicago", "Commercial plumbing contractors Chicago"]
     `;
 
-    const response = await getAi().models.generateContent({
+    const response = await withRetry(() => getAi().models.generateContent({
       model: model,
       contents: prompt,
       config: {
         responseMimeType: "application/json",
       },
-    });
+    }));
 
     const text = response.text || "[]";
     try {
@@ -93,13 +117,13 @@ export async function generateNicheSuggestions(): Promise<{ category: string; ni
       }
     `;
 
-    const response = await getAi().models.generateContent({
+    const response = await withRetry(() => getAi().models.generateContent({
       model: model,
       contents: prompt,
       config: {
         responseMimeType: "application/json",
       },
-    });
+    }));
 
     const data = JSON.parse(response.text || '{"suggestions": []}');
     return data.suggestions;
@@ -130,13 +154,13 @@ export async function enrichLeadData(leadName: string, companyName: string): Pro
       }
     `;
 
-    const response = await getAi().models.generateContent({
+    const response = await withRetry(() => getAi().models.generateContent({
       model: model,
       contents: prompt,
       config: {
         responseMimeType: "application/json",
       },
-    });
+    }));
 
     return JSON.parse(response.text || "{}");
   } catch (error) {
@@ -152,7 +176,7 @@ export async function searchPlaces(query: string, filters?: SearchFilters, onStr
     
     let filterInstructions = "";
     const targetLimit = filters?.limit || 20;
-    const maxIterations = Math.ceil(targetLimit / 15); // Try to get 15-20 per iteration
+    const maxIterations = Math.ceil(targetLimit / 30); // Try to get 30-40 per iteration
 
     if (filters) {
       if (filters.minRating) {
@@ -164,6 +188,15 @@ export async function searchPlaces(query: string, filters?: SearchFilters, onStr
       if (filters.keywords) {
         filterInstructions += `\n- Only include places that match these keywords: "${filters.keywords}".`;
       }
+      if (filters.excludeDomains && filters.excludeDomains.length > 0) {
+        filterInstructions += `\n- We already have hundreds/thousands of leads. Here is a SAMPLE of domains we already have: ${filters.excludeDomains.join(", ")}. Do NOT return these. Try to find DIFFERENT, perhaps less prominent businesses.`;
+      }
+      if (filters.excludePhones && filters.excludePhones.length > 0) {
+        filterInstructions += `\n- Here is a SAMPLE of phones we already have. Do NOT return them: ${filters.excludePhones.join(", ")}.`;
+      }
+      
+      const randomSeed = Math.random().toString(36).substring(7);
+      filterInstructions += `\n- DIVERSITY/RANDOMIZATION INSTRUCTION (${randomSeed}): We need fresh results. Dig deeper into the area. Ignore the most obvious/top-ranking businesses. Focus on a specific sub-neighborhood, side streets, or a specific alphabetical range of business names.`;
       if (filters.locationFilter) {
         const lf = filters.locationFilter;
         if (lf.type === 'radius' && lf.center) {
@@ -174,6 +207,8 @@ export async function searchPlaces(query: string, filters?: SearchFilters, onStr
             * South-West corner: Latitude ${southWest.lat.toFixed(5)}, Longitude ${southWest.lng.toFixed(5)}
             * North-East corner: Latitude ${northEast.lat.toFixed(5)}, Longitude ${northEast.lng.toFixed(5)}
             Do NOT include any places outside these coordinate bounds.`;
+        } else if (lf.type === 'multi_city' && lf.cities && lf.cities.length > 0) {
+          filterInstructions += `\n- GEOGRAPHIC CONSTRAINT: Search MUST be limited strictly to these cities: ${lf.cities.join(", ")}. Divide the requested results as evenly as possible among these cities.`;
         }
       }
     }
@@ -186,16 +221,16 @@ export async function searchPlaces(query: string, filters?: SearchFilters, onStr
       const remaining = targetLimit - allPlaces.length;
       if (remaining <= 0) break;
 
-      let limitInstruction = `Find exactly ${Math.min(remaining, 20)} results.`;
+      let limitInstruction = `Find exactly ${Math.min(remaining, 40)} results.`;
       let excludeInstruction = "";
       let iterationInstruction = "";
       
-      if (foundNames.size > 0) {
-        // Limit exclude list to last 50 to avoid huge prompts
-        const recentNames = Array.from(foundNames).slice(-50);
+      if (foundNames.size > 0 || (filters?.excludeDomains && filters.excludeDomains.length > 0)) {
+        // Limit exclude list to last 150 to avoid huge prompts in the iteration, but we already have full domain/phone exclusion
+        const recentNames = Array.from(foundNames).slice(-150);
         const excludeList = recentNames.map(name => `"${name}"`).join(", ");
-        excludeInstruction = `\nIMPORTANT: Do NOT include any of these places as they have already been found: ${excludeList}. Please find NEW places.`;
-        iterationInstruction = `\nTo find new places, try searching in different neighborhoods, surrounding areas, or using slightly different variations of the search terms.`;
+        excludeInstruction = `\nIMPORTANT: Do NOT include any of these specific places as they have already been found in this run: ${excludeList}. Please find NEW places.`;
+        iterationInstruction = `\nTo find new places and scale to thousands of leads, actively seek out less prominent, un-ranked, or deeper-page businesses. Search different sub-neighborhoods, distinct zip codes within the area, or use alternative synonymous search terms. Ignore the top 100 most popular results.`;
       }
 
       let localizedQuery = query;
@@ -206,18 +241,27 @@ export async function searchPlaces(query: string, filters?: SearchFilters, onStr
           localizedQuery = `${query} near ${areaLabel}`;
         } else if (lf.type === 'bounding_box' && lf.boundingBox) {
           localizedQuery = `${query} inside specified bounds`;
+        } else if (lf.type === 'multi_city' && lf.cities && lf.cities.length > 0) {
+          localizedQuery = `${query} in ${lf.cities.join(", ")}`;
         }
       }
 
       const prompt = `
-        Find "${localizedQuery}". 
-        I need a comprehensive list of leads for my GTM process.
+        CRITICAL: The user is building a massive database of 10,000+ leads and has already extracted the top results for "${localizedQuery}".
+        To find NEW leads with 90%+ accuracy, you MUST force the Google Maps search tool to look in different places.
+        DO NOT just search for the generic term "${localizedQuery}" in the tool.
+        
+        You MUST pick a random specific street, a random sub-neighborhood, a specific alphabetical letter constraint, or a highly specific long-tail synonym to use as your internal search query.
+        Example: if the query is "Real Estate Agents in Dubai", search the map for "Real Estate Agents in Jumeirah Village Circle", "Boutique Property Brokers in Dubai", or "Real Estate Agents on Sheikh Zayed Road".
+        
+        Use this unique random seed to determine your entirely new specific sub-query approach: ${Math.random().toString(36).substring(2)}
+        
         ${filterInstructions}
         ${excludeInstruction}
         ${iterationInstruction}
         
         Task:
-        1. Use Google Maps to find the places.
+        1. Use Google Maps to find the places using your randomized specific sub-query.
         2. Use Google Search to find the *actual* official website for each place if the Maps result is missing it or generic.
         
         Please provide a Markdown table with the following columns exactly: 
@@ -235,14 +279,14 @@ export async function searchPlaces(query: string, filters?: SearchFilters, onStr
         - Do not include any other text before or after the table, just the table.
       `;
 
-      const response = await getAi().models.generateContent({
+      const response = await withRetry(() => getAi().models.generateContent({
         model: model,
         contents: prompt,
         config: {
           // Enable both Google Maps and Google Search for maximum accuracy
           tools: [{ googleMaps: {} }, { googleSearch: {} }],
         },
-      });
+      }));
 
       const text = response.text || "";
       allText += text + "\n\n";

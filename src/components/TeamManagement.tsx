@@ -1,3 +1,4 @@
+"use client";
 import React, { useState, useEffect } from 'react';
 import { Users, Mail, Shield, Plus, Trash2, ShieldAlert, Link as LinkIcon } from 'lucide-react';
 import { toast } from 'sonner';

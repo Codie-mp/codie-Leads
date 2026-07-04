@@ -1,3 +1,4 @@
+"use client";
 import React, { useEffect, useRef, useState } from 'react';
 import L from 'leaflet';
 import { MapPin, Search, Maximize2, Trash2, Sliders, HelpCircle, Eye, RefreshCw } from 'lucide-react';
@@ -27,7 +28,7 @@ const cornerIconSvg = L.divIcon({
 });
 
 export interface LocationFilterData {
-  type: 'radius' | 'bounding_box';
+  type: 'radius' | 'bounding_box' | 'multi_city';
   center?: { lat: number; lng: number; address?: string };
   radiusKm?: number;
   boundingBox?: {
@@ -55,8 +56,8 @@ export function LocationMap({ value, onChange }: LocationMapProps) {
   const [resolvedAddress, setResolvedAddress] = useState<string>('');
 
   // Mode selection state
-  const [filterType, setFilterType] = useState<'radius' | 'bounding_box'>('radius');
-  const filterTypeRef = useRef<'radius' | 'bounding_box'>('radius');
+  const [filterType, setFilterType] = useState<'radius' | 'bounding_box' | 'multi_city'>('radius');
+  const filterTypeRef = useRef<'radius' | 'bounding_box' | 'multi_city'>('radius');
 
   useEffect(() => {
     filterTypeRef.current = filterType;

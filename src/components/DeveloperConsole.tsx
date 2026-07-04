@@ -1,3 +1,4 @@
+"use client";
 import React, { useState, useEffect } from 'react';
 import { Shield, Key, Copy, RefreshCw, Trash2, Plus, Terminal } from 'lucide-react';
 import { toast } from 'sonner';

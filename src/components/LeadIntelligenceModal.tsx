@@ -1,3 +1,4 @@
+"use client";
 import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
 import { Modal } from './ui/Modal';
@@ -265,7 +266,7 @@ export function LeadIntelligenceModal({ isOpen, onClose, lead }: LeadIntelligenc
       if (!response.ok) throw new Error(await response.text());
       const resData = await response.json();
       const text = resData.text || "No recent signals found.";
-      const lines = text.split('\n').filter(l => l.trim().length > 10).slice(0, 3);
+      const lines = text.split('\n').filter((l: string) => l.trim().length > 10).slice(0, 3);
       setSignals(lines);
       
       if (lead.id) {

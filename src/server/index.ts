@@ -2,12 +2,10 @@ import express, { Express } from "express";
 import helmet from "helmet";
 import cors from "cors";
 import cookieParser from "cookie-parser";
-import { createServer as createViteServer } from "vite";
+import next from "next";
 import path from "path";
 import { fileURLToPath } from "url";
-import { syncLegacySchema } from "./routes/legacy.js"; // Keeping this purely for the schema sync function
 import authRoutes from "./routes/auth.js";
-
 // Modular App Routes
 import dataRoutes from "./routes/data.js";
 import leadsRoutes from "./routes/leads.js";
@@ -28,28 +26,34 @@ const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
 export async function createServer(): Promise<Express> {
+  const dev = process.env.NODE_ENV !== "production";
+  
+  // Initialize Next.js app
+  const nextApp = next({ dev, dir: path.resolve(__dirname, "../..") });
+  const nextHandle = nextApp.getRequestHandler();
+  await nextApp.prepare();
+
   const app = express();
 
   // Basic security middleware
+  // CSP is relaxed here; Next.js handles its own CSP headers via next.config.mjs
   app.use(helmet({
-    contentSecurityPolicy: false, // Vite HMR needs relaxations
+    contentSecurityPolicy: false,
   }));
-  
   app.use(cors({
     origin: process.env.ALLOWED_ORIGINS?.split(",") || "http://localhost:3000",
     credentials: true,
   }));
-
   app.use(express.json({ limit: "5mb" }));
   app.use(express.urlencoded({ extended: true }));
   app.use(cookieParser());
 
-  // Set up API routes
+  // Set up API routes — these are handled by Express before Next.js sees the request
   app.use("/api/auth", authRoutes);
   app.use("/api/public", publicRoutes);
-  
+
   // Health Check Endpoint
-  app.get("/health", (req, res) => {
+  app.get("/health", (_req, res) => {
     res.status(200).json({ status: "ok", timestamp: new Date().toISOString() });
   });
 
@@ -65,40 +69,21 @@ export async function createServer(): Promise<Express> {
   app.use("/api/campaigns", campaignsRoutes);
   app.use("/api/categories", categoriesRoutes);
   app.use("/api/extension", extensionRoutes);
-  app.use("/api", geminiRoutes); // This handles /scrape, /gemini/keywords, etc since the old paths were mostly under /api/gemini or /api/scrape
-  
+  app.use("/api/gemini", geminiRoutes); // All Gemini AI routes under /api/gemini/*
+
   // External API v1
   app.use("/api/v1", apiV1Routes);
 
-  // Serve static files or Vite middleware
-  if (process.env.NODE_ENV !== "production") {
-    const vite = await createViteServer({
-      server: { middlewareMode: true },
-      appType: "spa",
-    });
-    app.use(vite.middlewares);
-  } else {
-    // We are running from dist/server.cjs in production
-    const staticDir = path.resolve(__dirname); 
-    app.use(express.static(staticDir));
-    app.get("*", (req, res) => {
-      // Don't serve index.html for api routes that fall through
-      if (req.path.startsWith('/api/')) {
-        res.status(404).json({ error: "Not Found" });
-        return;
-      }
-      res.sendFile(path.join(staticDir, "index.html"));
-    });
-  }
+  // Delegate all non-API requests to Next.js
+  app.all("*", (req, res) => {
+    return nextHandle(req, res);
+  });
 
   // Error handling middleware
-  app.use((err: any, req: express.Request, res: express.Response, next: express.NextFunction) => {
+  app.use((err: any, _req: express.Request, res: express.Response, _next: express.NextFunction) => {
     console.error(err.stack);
     res.status(500).json({ error: "Something went wrong!" });
   });
-
-  // Run initial migrations / schema sync
-  // await syncLegacySchema(); // Disabled locally to prevent schema warnings since Drizzle handles migrations
 
   return app;
 }

@@ -1,3 +1,4 @@
+"use client";
 import React, { useState, useMemo, Fragment } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
 import { Download, ExternalLink, MapPin, Phone, Star, FileJson, FileSpreadsheet, DollarSign, Save, Check, TrendingUp, ArrowUp, ArrowDown, ChevronsUpDown, Filter, X, ChevronLeft, ChevronRight, Send, Square, CheckSquare, ChevronDown, ChevronUp } from 'lucide-react';
@@ -95,8 +96,8 @@ export function ResultsTable({ places, isLoading }: ResultsTableProps) {
         aValue = parseFloat(a.rating) || 0;
         bValue = parseFloat(b.rating) || 0;
       } else if (sortConfig.key === 'reviews') {
-        aValue = parseInt(a.reviews.replace(/,/g, '')) || 0;
-        bValue = parseInt(b.reviews.replace(/,/g, '')) || 0;
+        aValue = parseInt((a.reviews || '0').replace(/,/g, '')) || 0;
+        bValue = parseInt((b.reviews || '0').replace(/,/g, '')) || 0;
       }
 
       if (aValue < bValue) return sortConfig.direction === 'asc' ? -1 : 1;

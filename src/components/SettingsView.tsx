@@ -1,3 +1,4 @@
+"use client";
 import React, { useState, useEffect } from 'react';
 import { Save, Key, Database, Mail, Shield, Smartphone, Puzzle, Copy, ExternalLink, Download, TrendingUp, Users, CreditCard } from 'lucide-react';
 import { toast } from 'sonner';
