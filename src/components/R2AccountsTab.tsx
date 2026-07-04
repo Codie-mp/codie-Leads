@@ -1,3 +1,4 @@
+"use client";
 import React, { useState, useEffect } from 'react';
 import { Database, Plus, Trash2, CheckCircle2, XCircle, RefreshCw, Server, Shield } from 'lucide-react';
 import { toast } from 'sonner';

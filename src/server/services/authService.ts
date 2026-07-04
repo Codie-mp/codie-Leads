@@ -81,7 +81,7 @@ export class AuthService {
     const userId = crypto.randomUUID();
     const passwordHash = await this.hashPassword(password);
     
-    const isSuperAdmin = process.env.SUPER_ADMIN_EMAIL && email.toLowerCase() === process.env.SUPER_ADMIN_EMAIL.toLowerCase();
+    const isSuperAdmin: boolean = !!(process.env.SUPER_ADMIN_EMAIL && email.toLowerCase() === process.env.SUPER_ADMIN_EMAIL.toLowerCase());
 
     const otp = this.generateOTP();
     const expires = new Date(Date.now() + 15 * 60000); // 15 mins
@@ -100,7 +100,7 @@ export class AuthService {
       email: email,
       passwordHash: passwordHash,
       role: isSuperAdmin ? 'admin' : 'admin',
-      isSuperAdmin: isSuperAdmin,
+      isSuperAdmin: isSuperAdmin ?? false,
       isVerified: false,
       otp: otp,
       otpExpiresAt: expires

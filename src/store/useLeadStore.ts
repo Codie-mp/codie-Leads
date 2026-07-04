@@ -1,3 +1,4 @@
+"use client";
 import { create } from 'zustand';
 import { Lead, Category, Campaign, RecentSearch } from '@/lib/schema';
 

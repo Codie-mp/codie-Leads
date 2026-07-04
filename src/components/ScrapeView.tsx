@@ -1,3 +1,4 @@
+"use client";
 import React, { useState } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
 import { Target, Search, Sparkles, Loader2, Database, ExternalLink, SlidersHorizontal, Star, MapPin, Phone, DollarSign, X, FolderPlus } from 'lucide-react';

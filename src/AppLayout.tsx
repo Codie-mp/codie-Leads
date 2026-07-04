@@ -1,3 +1,4 @@
+"use client";
 import { useState, useEffect } from 'react';
 import { SearchForm } from './components/SearchForm';
 import { ResultsTable } from './components/ResultsTable';
@@ -22,7 +23,7 @@ import { NotificationBell } from './components/NotificationBell';
 import { useStore } from './store/useLeadStore';
 
 import { useAuth } from './contexts/AuthContext';
-import { useNavigate } from 'react-router-dom';
+import { useRouter } from 'next/navigation';
 
 export function AppLayout() {
   const [places, setPlaces] = useState<PlaceResult[]>([]);
@@ -41,7 +42,7 @@ export function AppLayout() {
 
   const { isLoaded, fetchData } = useStore();
   const { user, logout } = useAuth();
-  const navigate = useNavigate();
+  const router = useRouter();
   const [subscription, setSubscription] = useState<any>(null);
 
   useEffect(() => {
@@ -244,7 +245,7 @@ export function AppLayout() {
             <NotificationBell />
           {!!user?.isSuperAdmin && (
             <button
-              onClick={() => navigate('/superadmin')}
+              onClick={() => router.push('/superadmin')}
               className="flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-bold bg-gray-900 text-white shadow-sm ring-1 ring-black/5 hover:bg-gray-800 transition-all ml-2"
             >
               <ShieldCheck className="w-4 h-4" />
@@ -254,7 +255,7 @@ export function AppLayout() {
           <button
             onClick={() => {
               logout();
-              navigate('/login');
+              router.push('/login');
             }}
             className="flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-semibold text-red-600 hover:text-red-700 hover:bg-red-50 transition-all ml-2"
           >

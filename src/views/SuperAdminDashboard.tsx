@@ -1,3 +1,4 @@
+"use client";
 import React, { useState, useEffect, useCallback } from 'react';
 import {
   ShieldCheck, Plus, Pencil, Trash2, CheckCircle2, XCircle,
@@ -8,7 +9,7 @@ import {
 import { toast } from 'sonner';
 import { R2AccountsTab } from '../components/R2AccountsTab';
 import { useAuth } from '../contexts/AuthContext';
-import { useNavigate } from 'react-router-dom';
+import { useRouter } from 'next/navigation';
 
 // ── Types ──────────────────────────────────────────────────────────────────
 interface PricingPlan {
@@ -294,7 +295,7 @@ const CompanyDetailModal = ({ companyId, onClose }: { companyId: string; onClose
 
 // ── Main Dashboard ─────────────────────────────────────────────────────────
 export const SuperAdminDashboard: React.FC = () => {
-  const [activeTab, setActiveTab] = useState<'overview' | 'companies' | 'users' | 'subscriptions' | 'plans' | 'theming' | 'activity'>('overview');
+  const [activeTab, setActiveTab] = useState<'overview' | 'companies' | 'users' | 'subscriptions' | 'plans' | 'credit-packages' | 'ai-models' | 'theming' | 'activity' | 'r2'>('overview');
   const [stats, setStats] = useState<Stats | null>(null);
   const [plans, setPlans] = useState<PricingPlan[]>([]);
   const [companies, setCompanies] = useState<Company[]>([]);
@@ -308,6 +309,8 @@ export const SuperAdminDashboard: React.FC = () => {
   const [isPlanModalOpen, setIsPlanModalOpen] = useState(false);
   const [newPlanData, setNewPlanData] = useState({ name: '', monthlyPrice: 0, yearlyPrice: 0, creditsPerMonth: 0, maxMembers: 1, description: '' });
 
+  const [creditPackages, setCreditPackages] = useState<CreditPackage[]>([]);
+  const [aiModels, setAiModels] = useState<any[]>([]);
   const [isCreditPackageModalOpen, setIsCreditPackageModalOpen] = useState(false);
   const [newCreditPackageData, setNewCreditPackageData] = useState({ name: '', price: 0, credits: 0, description: '' });
 
@@ -315,7 +318,7 @@ export const SuperAdminDashboard: React.FC = () => {
   const [newAIModelData, setNewAIModelData] = useState({ name: '', provider: '', costPer1kTokensIn: 0, costPer1kTokensOut: 0, profitMultiplier: 3.0 });
 
   const { logout } = useAuth();
-  const navigate = useNavigate();
+  const router = useRouter();
 
   const loadStats = useCallback(() => {
     api('/stats').then(setStats).catch(e => toast.error(e.message));
@@ -465,9 +468,9 @@ export const SuperAdminDashboard: React.FC = () => {
               >
                 <Icon className="w-4 h-4 flex-shrink-0" />
                 {tab.label}
-                {tab.id === 'subscriptions' && stats?.pendingSubscriptions > 0 && (
+                {tab.id === 'subscriptions' && (stats?.pendingSubscriptions ?? 0) > 0 && (
                   <span className="ml-auto bg-yellow-500 text-white text-xs font-bold px-1.5 py-0.5 rounded-full">
-                    {stats.pendingSubscriptions}
+                    {stats?.pendingSubscriptions}
                   </span>
                 )}
               </button>
@@ -478,7 +481,7 @@ export const SuperAdminDashboard: React.FC = () => {
             <button
               onClick={() => {
                 logout();
-                navigate('/login');
+                router.push('/login');
               }}
               className="w-full flex items-center gap-3 px-4 py-2.5 text-sm font-semibold text-red-600 bg-red-50 hover:bg-red-100 rounded-xl transition-colors text-left"
             >
@@ -508,12 +511,12 @@ export const SuperAdminDashboard: React.FC = () => {
                 <StatCard label="Pending Subscriptions" value={stats?.pendingSubscriptions ?? '—'} color="text-red-600" sub="Awaiting approval" />
                 <StatCard label="Active Subscriptions" value={stats?.activeCompanies ?? '—'} color="text-teal-600" sub="Paying customers" />
               </div>
-              {stats?.pendingSubscriptions > 0 && (
+              {(stats?.pendingSubscriptions ?? 0) > 0 && (
                 <div className="bg-yellow-50 border border-yellow-200 rounded-xl p-4 flex items-center justify-between">
                   <div className="flex items-center gap-3">
                     <AlertTriangle className="w-5 h-5 text-yellow-600" />
                     <div>
-                      <div className="font-semibold text-yellow-800">{stats.pendingSubscriptions} subscription(s) awaiting approval</div>
+                      <div className="font-semibold text-yellow-800">{stats?.pendingSubscriptions} subscription(s) awaiting approval</div>
                       <div className="text-sm text-yellow-700">Review and approve payment proofs to activate subscriptions</div>
                     </div>
                   </div>

@@ -1,5 +1,7 @@
+"use client";
 import React, { useState, useEffect } from 'react';
-import { useNavigate, useLocation, Link } from 'react-router-dom';
+import { useRouter, useSearchParams, usePathname } from 'next/navigation';
+import Link from 'next/link';
 import { useAuth } from '../contexts/AuthContext';
 import { Logo } from '../components/Logo';
 import { Mail, Lock, Loader2, ArrowRight, KeyRound } from 'lucide-react';
@@ -8,12 +10,12 @@ import { toast } from 'sonner';
 type AuthView = 'login' | 'register' | 'verify' | 'forgot-password' | 'reset-password';
 
 export const LoginPage: React.FC = () => {
-  const location = useLocation();
-  const navigate = useNavigate();
+  const router = useRouter();
+  const searchParamsHook = useSearchParams();
   const { login } = useAuth();
   
   const [view, setView] = useState<AuthView>(
-    location.search.includes('plan=') || location.search.includes('register') ? 'register' : 'login'
+    searchParamsHook.get('plan') || searchParamsHook.toString().includes('register') ? 'register' : 'login'
   );
   
   const [email, setEmail] = useState('');
@@ -27,10 +29,10 @@ export const LoginPage: React.FC = () => {
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
-    if (location.search.includes('plan=')) {
+    if (searchParamsHook.get('plan')) {
       setView('register');
     }
-  }, [location.search]);
+  }, [searchParamsHook]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -71,10 +73,9 @@ export const LoginPage: React.FC = () => {
 
         login(data.accessToken, data.refreshToken);
         toast.success('Welcome back!');
-        const searchParams = new URLSearchParams(location.search);
-        const planParam = searchParams.get('plan');
-        const from = (location.state as any)?.from?.pathname || (planParam ? `/app?view=billing&plan=${planParam}` : '/app');
-        navigate(from, { replace: true });
+        const planParam = searchParamsHook.get('plan');
+        const from = planParam ? `/app?view=billing&plan=${planParam}` : '/app';
+        router.replace(from);
         
       } else if (view === 'verify') {
         const res = await fetch('/api/auth/verify-otp', {
@@ -87,9 +88,8 @@ export const LoginPage: React.FC = () => {
         
         login(data.accessToken, data.refreshToken);
         toast.success('Email verified successfully!');
-        const searchParams = new URLSearchParams(location.search);
-        const planParam = searchParams.get('plan');
-        navigate(planParam ? `/app?view=billing&plan=${planParam}` : '/app', { replace: true });
+        const planParam = searchParamsHook.get('plan');
+        router.replace(planParam ? `/app?view=billing&plan=${planParam}` : '/app');
 
       } else if (view === 'forgot-password') {
         const res = await fetch('/api/auth/forgot-password', {
@@ -116,7 +116,7 @@ export const LoginPage: React.FC = () => {
         
         login(data.accessToken, data.refreshToken);
         toast.success('Password reset successfully!');
-        navigate('/app', { replace: true });
+        router.replace('/app');
       }
 
     } catch (err: any) {
@@ -181,7 +181,7 @@ export const LoginPage: React.FC = () => {
     <div className="min-h-screen bg-[#F8F9FC] flex flex-col justify-center py-12 sm:px-6 lg:px-8 selection:bg-blue-200">
       <div className="sm:mx-auto sm:w-full sm:max-w-md">
         <div className="flex justify-center">
-          <Link to="/">
+          <Link href="/">
             <Logo />
           </Link>
         </div>

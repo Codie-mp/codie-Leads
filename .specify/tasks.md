@@ -1,58 +1,62 @@
-# Tasks: GTM Maps Lite Integration
+# Tasks: Next.js App Router Migration
 
-## Phase 1: Setup & Backend Integration
+## Phase 1: Setup & Configuration
 
-- [ ] **Task 1.1: Create feature branch**
-  - Action: Create and checkout branch `feat/gtm-maps-lite-nextjs`.
+- [ ] **Task 1.1: Dependency Updates**
+  - Action: Uninstall Vite and related packages. Install `next`, `react`, `react-dom`.
+  - Details: Ensure React versions are compatible with Next.js 14+.
 
-- [ ] **Task 1.2: Port Gemini Service Logic**
-  - Action: Copy `gemini-server.ts` from the ZIP to `src/server/services/geminiService.ts` (or similar).
-  - Details: Ensure it uses the existing `@google/genai` package and handles the streaming logic correctly.
+- [ ] **Task 1.2: Configuration Files**
+  - Action: Create `next.config.mjs`. Update `tsconfig.json` for Next.js compatibility.
+  - Details: Configure `tsconfig.json` to include the `.next` directory and use `"jsx": "preserve"`.
 
-- [ ] **Task 1.3: Update Express Routes**
-  - Action: Update `src/server/routes/gemini.ts` to include the new endpoints (`/search`, `/keywords`, `/niches`, `/enrich`) from the prototype's `server.ts`.
-  - Details: Ensure the `/search` endpoint correctly sets headers for Server-Sent Events (`text/event-stream`).
+## Phase 2: Server Integration
 
-## Phase 2: Frontend State & Utilities
+- [ ] **Task 2.1: Update Express Server (`src/server/index.ts`)**
+  - Action: Remove Vite middleware. Integrate Next.js custom server logic.
+  - Details: Initialize `next({ dev })`, get the request handler, and route all non-`/api` requests to Next.js.
 
-- [ ] **Task 2.1: Update Zustand Store**
-  - Action: Apply the diffs to `src/store/useLeadStore.ts`.
-  - Details: Add `updateCategory` and fix the `fetchData` JSON parsing.
+- [ ] **Task 2.2: Update Build Scripts**
+  - Action: Modify `package.json` scripts (`dev`, `build`, `start`).
+  - Details: Ensure the build process compiles both the Next.js app and the Express server.
 
-- [ ] **Task 2.2: Add Error Handler**
-  - Action: Copy `src/lib/errorHandler.ts` from the ZIP to the repo.
+## Phase 3: Routing & Layout Migration
 
-- [ ] **Task 2.3: Update Frontend Gemini Service**
-  - Action: Apply the diffs to `src/services/gemini.ts`.
-  - Details: Update the `SearchFilters` interface and the API call wrappers.
+- [ ] **Task 3.1: Global Layout (`app/layout.tsx`)**
+  - Action: Create the root layout. Move global CSS imports and HTML shell structure here.
+  - Details: Include any global providers (e.g., Toast providers, Auth contexts) as Client Components if necessary.
 
-## Phase 3: UI Component Migration
+- [ ] **Task 3.2: Page Creation**
+  - Action: Create `app/page.tsx` (Landing), `app/dashboard/page.tsx`, etc., based on `src/App.tsx` routes.
+  - Details: Initially, just render the corresponding existing components within these pages.
 
-- [ ] **Task 3.1: Copy New Components**
-  - Action: Copy `CategoryManagerModal.tsx` from the ZIP to `src/components/`.
+## Phase 4: Component Adaptation
 
-- [ ] **Task 3.2: Update Search Components**
-  - Action: Apply diffs to `SearchForm.tsx`.
-  - Details: Ensure any routing uses `next/link` or Next.js router if applicable (though it appears to be mostly state-driven).
+- [ ] **Task 4.1: Client Component Directives**
+  - Action: Add `"use client"` to all components in `src/components/` that use React state, effects, or Zustand.
 
-- [ ] **Task 3.3: Update ScrapeView**
-  - Action: Apply diffs to `ScrapeView.tsx`.
-  - Details: Integrate the new error handling and updated UI elements.
+- [ ] **Task 4.2: Navigation Updates**
+  - Action: Replace all instances of `react-router-dom` with Next.js equivalents (`next/link`, `next/navigation`).
+  - Details: Update `useNavigate` to `useRouter`, and `Link` components.
 
-- [ ] **Task 3.4: Update DashboardView**
-  - Action: Apply diffs to `DashboardView.tsx`.
-  - Details: Apply the styling changes (purple to blue).
+## Phase 5: SEO & GEO
 
-## Phase 4: SEO/GEO & Finalization
+- [ ] **Task 5.1: Metadata Implementation**
+  - Action: Add `export const metadata` to `app/layout.tsx` and key pages.
 
-- [ ] **Task 4.1: Add llms.txt**
-  - Action: Create `public/llms.txt` with a brief description of the Codie-Leads application for AI crawlers.
+- [ ] **Task 5.2: Sitemap & Robots**
+  - Action: Create `app/sitemap.ts` and `app/robots.txt`.
 
-- [ ] **Task 4.2: Add ICP Guide**
-  - Action: Copy `PERFECT_ICP_GUIDE.md` from the ZIP to a suitable location (e.g., `public/docs/` or as a new Next.js page if it should be public).
+- [ ] **Task 5.3: JSON-LD**
+  - Action: Add a structured data script tag to the landing page (`app/page.tsx`).
 
-- [ ] **Task 4.3: Type Checking & Linting**
-  - Action: Run `npm run lint` (`tsc --noEmit`) and fix any strict-mode errors introduced by the new code.
+## Phase 6: Finalization
 
-- [ ] **Task 4.4: Commit and Push**
-  - Action: Commit all changes and push the branch to origin.
+- [ ] **Task 6.1: Type Checking**
+  - Action: Run `npx tsc --noEmit` and resolve any strict mode errors.
+
+- [ ] **Task 6.2: Cleanup**
+  - Action: Delete `src/App.tsx`, `index.html` (Vite's entry point), and any other obsolete Vite files.
+
+- [ ] **Task 6.3: Commit and Push**
+  - Action: Commit all changes to the feature branch and push.

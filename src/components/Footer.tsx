@@ -1,4 +1,5 @@
-import { Link } from 'react-router-dom';
+"use client";
+import Link from 'next/link';
 import { Logo } from './Logo';
 
 export function Footer() {
@@ -7,7 +8,7 @@ export function Footer() {
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="grid grid-cols-1 md:grid-cols-4 gap-12 mb-12">
           <div className="col-span-1 md:col-span-1">
-            <Link to="/" className="inline-block mb-4">
+            <Link href="/" className="inline-block mb-4">
               <Logo />
             </Link>
             <p className="text-gray-500 text-sm mt-4">
@@ -20,8 +21,8 @@ export function Footer() {
             <ul className="space-y-3">
               <li><a href="#features" className="text-gray-500 hover:text-blue-600 text-sm transition-colors">Features</a></li>
               <li><a href="#pricing" className="text-gray-500 hover:text-blue-600 text-sm transition-colors">Pricing</a></li>
-              <li><Link to="/login" className="text-gray-500 hover:text-blue-600 text-sm transition-colors">Sign In</Link></li>
-              <li><Link to="/login" className="text-gray-500 hover:text-blue-600 text-sm transition-colors">Start Free Trial</Link></li>
+              <li><Link href="/login" className="text-gray-500 hover:text-blue-600 text-sm transition-colors">Sign In</Link></li>
+              <li><Link href="/login" className="text-gray-500 hover:text-blue-600 text-sm transition-colors">Start Free Trial</Link></li>
             </ul>
           </div>
           
@@ -40,8 +41,8 @@ export function Footer() {
             <ul className="space-y-3">
               <li><a href="#about" className="text-gray-500 hover:text-blue-600 text-sm transition-colors">About Us</a></li>
               <li><a href="#careers" className="text-gray-500 hover:text-blue-600 text-sm transition-colors">Careers</a></li>
-              <li><Link to="/privacy" className="text-gray-500 hover:text-blue-600 text-sm transition-colors">Privacy Policy</Link></li>
-              <li><Link to="/terms" className="text-gray-500 hover:text-blue-600 text-sm transition-colors">Terms of Service</Link></li>
+              <li><Link href="/privacy" className="text-gray-500 hover:text-blue-600 text-sm transition-colors">Privacy Policy</Link></li>
+              <li><Link href="/terms" className="text-gray-500 hover:text-blue-600 text-sm transition-colors">Terms of Service</Link></li>
             </ul>
           </div>
         </div>

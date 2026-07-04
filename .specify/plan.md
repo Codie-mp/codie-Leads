@@ -1,44 +1,66 @@
-# Technical Plan: GTM Maps Lite Integration
+# Technical Plan: Next.js App Router Migration
 
-## 1. Architecture Overview
+## 1. Architecture Strategy: Custom Server vs. Monorepo
 
-The integration involves porting React components and Express API routes from the prototype into the Next.js/Express architecture of Codie-Leads.
+Since we must keep the Express backend and introduce a Next.js frontend, we have two primary architectural choices:
 
-*   **Frontend (Next.js)**: New components will be added to `src/components`. Existing views (e.g., `ScrapeView`, `DashboardView`) will be updated to incorporate the new features. We will use Client Components (`"use client"`) where state and interactivity (like streaming search results) are required, but ensure that any public-facing landing pages remain Server Components for SEO.
-*   **Backend (Express)**: The Gemini streaming search logic from the prototype's `server.ts` will be ported to the existing Express backend, likely under `src/server/routes/gemini.ts`.
-*   **State Management**: The Zustand store (`src/store/useLeadStore.ts`) will be updated to handle the new state requirements.
+1.  **Next.js Custom Server**: Integrate Express directly into Next.js using a custom `server.ts` file.
+2.  **Monorepo / Separate Processes**: Keep the Next.js frontend and Express backend as separate processes, potentially managed by a tool like Turborepo or just concurrently via `npm-run-all`.
 
-## 2. Component Migration Strategy
+**Decision: Next.js Custom Server**
+Given the existing codebase structure where the Express server also serves the Vite SPA in production (via `vite.middlewares` in dev and static files in prod), adapting this to a Next.js Custom Server is the most direct path. We will replace the Vite middleware with Next.js request handling.
 
-The following components from the ZIP will be copied to `src/components/` and adapted for Next.js:
+## 2. Project Structure Reorganization
 
-*   `SearchForm.tsx`: Needs to ensure compatibility with Next.js routing if it handles navigation.
-*   `ResultsTable.tsx` & `ResultsSkeleton.tsx`: UI components for displaying data.
-*   `CategoryManagerModal.tsx`: New UI component.
-*   `ScrapeView.tsx`: Will be updated to use the new `SearchForm` and handle the streaming response from the backend.
-*   `DashboardView.tsx`: Minor UI updates based on the diff (e.g., color changes from purple to blue).
+We will restructure the repository to support Next.js:
 
-## 3. Backend API Migration Strategy
+*   `app/`: New Next.js App Router directory.
+*   `src/components/`: Existing React components (will need `"use client"` directives added where state/effects are used).
+*   `src/server/`: Existing Express backend (remains largely unchanged).
+*   `src/store/`: Existing Zustand stores.
+*   `src/lib/`: Existing utilities and schemas.
 
-The prototype's `server.ts` contains several `/api/gemini/*` endpoints. These need to be integrated into the Express server in `src/server/routes/gemini.ts`.
+## 3. Step-by-Step Implementation Plan
 
-*   `POST /api/gemini/search`: The core streaming endpoint. It uses `GoogleGenAI` with `googleMaps` and `googleSearch` tools. This logic (`searchPlaces` from `gemini-server.ts`) will be moved to the backend service layer and exposed via this route. It must handle `text/event-stream` responses correctly.
-*   `POST /api/gemini/keywords`, `POST /api/gemini/niches`, `POST /api/gemini/enrich`: Supporting endpoints that need to be ported.
+### Step 1: Dependencies and Config
+*   Remove Vite and related dependencies (`vite`, `@vitejs/plugin-react`, etc.).
+*   Install Next.js dependencies (`next`, `react`, `react-dom`).
+*   Update `tsconfig.json` to support Next.js (`"jsx": "preserve"`, Next.js specific plugins).
+*   Create `next.config.mjs`.
 
-## 4. State Management Updates
+### Step 2: Server Integration
+*   Update `src/server/index.ts`.
+*   Remove Vite middleware logic.
+*   Initialize Next.js app (`next({ dev })`).
+*   Create a catch-all route in Express (`app.all('*', (req, res) => handle(req, res))`) to pass non-API requests to Next.js.
 
-The `useLeadStore.ts` needs to be updated based on the diff:
-*   Add `updateCategory` action.
-*   Fix the `fetchData` JSON parsing logic.
+### Step 3: Routing Migration (`app/` directory)
+*   Analyze `src/App.tsx` (the current React Router setup).
+*   Create corresponding directories and `page.tsx` files in `app/`.
+    *   `app/page.tsx` (Landing Page)
+    *   `app/dashboard/page.tsx` (Dashboard)
+    *   `app/scrape/page.tsx` (Scrape View)
+    *   etc.
+*   Create `app/layout.tsx` to handle the global HTML structure, providers (like AuthProvider if it exists), and global styles.
 
-## 5. SEO & GEO Considerations
+### Step 4: Component Adaptation
+*   Add `"use client"` to components that use `useState`, `useEffect`, or Zustand (`useStore`).
+*   Replace `Link` from `react-router-dom` with `Link` from `next/link`.
+*   Replace `useNavigate` with `useRouter` from `next/navigation`.
 
-*   The `ScrapeView` is an internal tool, so traditional SEO is less critical here. However, any public-facing documentation (like the ICP guide) should be rendered server-side.
-*   We will add an `llms.txt` file to the `public` directory to satisfy the GEO requirement, providing a summary of the application for AI crawlers.
+### Step 5: SEO and GEO Implementation
+*   Implement `generateMetadata` in `app/layout.tsx` and specific `page.tsx` files.
+*   Add a static `app/robots.txt` and `app/sitemap.ts`.
+*   Ensure `public/llms.txt` is accessible.
+*   Implement JSON-LD structured data on the landing page.
 
-## 6. Dependencies
+### Step 6: Build and Run Scripts
+*   Update `package.json` scripts:
+    *   `"dev"`: Run the custom Express server (which starts Next.js in dev mode).
+    *   `"build"`: Run `next build` AND compile the Express server.
+    *   `"start"`: Run the compiled Express server (which serves the built Next.js app).
 
-We need to ensure the following dependencies from the prototype are present in the `package.json`:
-*   `@google/genai` (Already present)
-*   `sonner` (For toast notifications, already present)
-*   `lucide-react` (Already present)
+## 4. Risk Mitigation
+
+*   **Zustand Hydration**: Zustand can cause hydration mismatches in SSR if not handled carefully. We will ensure the store is only hydrated on the client or use a provider pattern if necessary.
+*   **Express/Next.js Port Conflicts**: By using a custom server, both run on the same port, avoiding CORS issues and simplifying deployment.

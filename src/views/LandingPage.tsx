@@ -1,6 +1,7 @@
+"use client";
 import React, { useEffect, useState } from 'react';
 import { motion } from 'motion/react';
-import { Link } from 'react-router-dom';
+import Link from 'next/link';
 import { ArrowRight, CheckCircle2, Building2, Users, Map, Database, Zap, Lock, ShieldCheck } from 'lucide-react';
 import { Logo } from '../components/Logo';
 import { Footer } from '../components/Footer';
@@ -36,7 +37,7 @@ export const LandingPage: React.FC = () => {
       <nav className="relative z-20 container mx-auto px-6 py-6 flex justify-between items-center">
         <Logo />
         <div className="flex items-center gap-4">
-          <Link to="/login" className="text-gray-600 hover:text-gray-900 font-medium transition-colors">
+          <Link href="/login" className="text-gray-600 hover:text-gray-900 font-medium transition-colors">
             Sign In
           </Link>
           <a href="#pricing" className="bg-gray-900 hover:bg-gray-800 text-white px-5 py-2.5 rounded-full font-medium transition-all shadow-lg hover:shadow-xl hover:-translate-y-0.5">
@@ -77,7 +78,7 @@ export const LandingPage: React.FC = () => {
                 Start Free Trial
                 <ArrowRight className="w-5 h-5 group-hover:translate-x-1 transition-transform" />
               </a>
-              <Link to="/login" className="w-full sm:w-auto bg-white hover:bg-gray-50 text-gray-900 px-8 py-4 rounded-full text-lg font-semibold transition-all shadow-sm ring-1 ring-gray-200">
+              <Link href="/login" className="w-full sm:w-auto bg-white hover:bg-gray-50 text-gray-900 px-8 py-4 rounded-full text-lg font-semibold transition-all shadow-sm ring-1 ring-gray-200">
                 Book Demo
               </Link>
             </div>
@@ -163,7 +164,7 @@ export const LandingPage: React.FC = () => {
                     <li className="flex items-center gap-3"><CheckCircle2 className={`w-5 h-5 ${plan.name === 'pro' ? 'text-yellow-500' : 'text-blue-600'}`} /> Google Maps Scraping</li>
                     <li className="flex items-center gap-3"><CheckCircle2 className={`w-5 h-5 ${plan.name === 'pro' ? 'text-yellow-500' : 'text-blue-600'}`} /> AI Enrichment</li>
                   </ul>
-                  <Link to={isAuthenticated ? `/app?view=billing&plan=${plan.name}` : `/register?plan=${plan.name}`} className={`w-full block text-center py-3 px-6 rounded-xl font-bold transition-colors ${plan.name === 'pro' ? 'bg-white text-gray-900 hover:bg-gray-100' : 'bg-blue-50 text-blue-700 hover:bg-blue-100'}`}>
+                  <Link href={isAuthenticated ? `/app?view=billing&plan=${plan.name}` : `/register?plan=${plan.name}`} className={`w-full block text-center py-3 px-6 rounded-xl font-bold transition-colors ${plan.name === 'pro' ? 'bg-white text-gray-900 hover:bg-gray-100' : 'bg-blue-50 text-blue-700 hover:bg-blue-100'}`}>
                     Start with {plan.name}
                   </Link>
                 </div>
@@ -184,7 +185,7 @@ export const LandingPage: React.FC = () => {
                     <li className="flex items-center gap-3"><CheckCircle2 className="w-5 h-5 text-blue-600" /> Google Maps Scraping</li>
                     <li className="flex items-center gap-3"><CheckCircle2 className="w-5 h-5 text-blue-600" /> 1 Team Member</li>
                   </ul>
-                  <Link to={isAuthenticated ? "/app?view=billing&plan=starter" : "/register?plan=starter"} className="w-full block text-center py-3 px-6 rounded-xl font-bold bg-blue-50 text-blue-700 hover:bg-blue-100 transition-colors">
+                  <Link href={isAuthenticated ? "/app?view=billing&plan=starter" : "/register?plan=starter"} className="w-full block text-center py-3 px-6 rounded-xl font-bold bg-blue-50 text-blue-700 hover:bg-blue-100 transition-colors">
                     Start with Starter
                   </Link>
                 </div>
@@ -206,7 +207,7 @@ export const LandingPage: React.FC = () => {
                     <li className="flex items-center gap-3"><CheckCircle2 className="w-5 h-5 text-yellow-500" /> 5 Team Members</li>
                     <li className="flex items-center gap-3"><CheckCircle2 className="w-5 h-5 text-yellow-500" /> CRM Integrations</li>
                   </ul>
-                  <Link to={isAuthenticated ? "/app?view=billing&plan=pro" : "/register?plan=pro"} className="w-full block text-center py-3 px-6 rounded-xl font-bold bg-white text-gray-900 hover:bg-gray-100 transition-colors">
+                  <Link href={isAuthenticated ? "/app?view=billing&plan=pro" : "/register?plan=pro"} className="w-full block text-center py-3 px-6 rounded-xl font-bold bg-white text-gray-900 hover:bg-gray-100 transition-colors">
                     Start Free Pro Trial
                   </Link>
                 </div>
@@ -224,7 +225,7 @@ export const LandingPage: React.FC = () => {
                     <li className="flex items-center gap-3"><CheckCircle2 className="w-5 h-5 text-blue-600" /> Dedicated Account Manager</li>
                     <li className="flex items-center gap-3"><CheckCircle2 className="w-5 h-5 text-blue-600" /> API Access & Webhooks</li>
                   </ul>
-                  <Link to={isAuthenticated ? "/app?view=billing&plan=enterprise" : "/register?plan=enterprise"} className="w-full block text-center py-3 px-6 rounded-xl font-bold border-2 border-gray-200 text-gray-700 hover:border-gray-300 hover:bg-gray-50 transition-colors">
+                  <Link href={isAuthenticated ? "/app?view=billing&plan=enterprise" : "/register?plan=enterprise"} className="w-full block text-center py-3 px-6 rounded-xl font-bold border-2 border-gray-200 text-gray-700 hover:border-gray-300 hover:bg-gray-50 transition-colors">
                     Contact Sales
                   </Link>
                 </div>

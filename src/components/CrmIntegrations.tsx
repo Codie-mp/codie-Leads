@@ -1,3 +1,4 @@
+"use client";
 import React, { useState, useEffect } from 'react';
 import { Database, Plus, Trash2, Webhook, Save } from 'lucide-react';
 import { toast } from 'sonner';

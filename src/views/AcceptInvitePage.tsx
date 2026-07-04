@@ -1,13 +1,14 @@
+"use client";
 import React, { useState, useEffect } from 'react';
-import { useNavigate, useSearchParams } from 'react-router-dom';
+import { useRouter, useSearchParams } from 'next/navigation';
 import { motion } from 'motion/react';
 import { Mail, Lock, ArrowRight, ShieldCheck, Map } from 'lucide-react';
 import { toast } from 'sonner';
 
 export function AcceptInvitePage() {
-  const [searchParams] = useSearchParams();
+  const searchParams = useSearchParams();
   const token = searchParams.get('token');
-  const navigate = useNavigate();
+  const router = useRouter();
   
   const [password, setPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
@@ -16,9 +17,9 @@ export function AcceptInvitePage() {
   useEffect(() => {
     if (!token) {
       toast.error('Invalid or missing invite token');
-      navigate('/');
+      router.push('/');
     }
-  }, [token, navigate]);
+  }, [token, router]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();

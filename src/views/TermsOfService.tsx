@@ -1,5 +1,6 @@
+"use client";
 import React from 'react';
-import { Link } from 'react-router-dom';
+import Link from 'next/link';
 import { Logo } from '../components/Logo';
 
 export const TermsOfService: React.FC = () => {
@@ -7,7 +8,7 @@ export const TermsOfService: React.FC = () => {
     <div className="min-h-screen bg-[#F8F9FC] py-12 px-4 sm:px-6 lg:px-8">
       <div className="max-w-4xl mx-auto bg-white shadow-sm rounded-2xl border border-gray-100 overflow-hidden">
         <div className="bg-gray-900 px-8 py-12 text-white">
-          <Link to="/" className="inline-block mb-8">
+          <Link href="/" className="inline-block mb-8">
             <div className="bg-white p-2 rounded-lg inline-block">
               <Logo />
             </div>
@@ -53,7 +54,7 @@ export const TermsOfService: React.FC = () => {
         </div>
         
         <div className="bg-gray-50 px-8 py-6 border-t border-gray-100 flex justify-between items-center">
-          <Link to="/" className="text-blue-600 hover:text-blue-800 font-medium transition-colors">
+          <Link href="/" className="text-blue-600 hover:text-blue-800 font-medium transition-colors">
             &larr; Back to Home
           </Link>
           <span className="text-gray-400 text-sm">Codie Leads © {new Date().getFullYear()}</span>

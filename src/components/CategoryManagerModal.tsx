@@ -1,3 +1,4 @@
+"use client";
 import React, { useState } from 'react';
 import { useStore } from '@/store/useLeadStore';
 import { X, FolderPlus, Trash2, Edit2, Check } from 'lucide-react';
