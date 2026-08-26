@@ -295,7 +295,7 @@ const CompanyDetailModal = ({ companyId, onClose }: { companyId: string; onClose
 
 // ── Main Dashboard ─────────────────────────────────────────────────────────
 export const SuperAdminDashboard: React.FC = () => {
-  const [activeTab, setActiveTab] = useState<'overview' | 'companies' | 'users' | 'subscriptions' | 'plans' | 'credit-packages' | 'ai-models' | 'theming' | 'activity' | 'r2'>('overview');
+  const [activeTab, setActiveTab] = useState<'overview' | 'companies' | 'users' | 'subscriptions' | 'plans' | 'credit-packages' | 'ai-models' | 'theming' | 'activity-logs' | 'r2'>('overview');
   const [stats, setStats] = useState<Stats | null>(null);
   const [plans, setPlans] = useState<PricingPlan[]>([]);
   const [companies, setCompanies] = useState<Company[]>([]);
@@ -336,7 +336,7 @@ export const SuperAdminDashboard: React.FC = () => {
         case 'credit-packages': setCreditPackages(await api('/credit-packages')); break;
         case 'ai-models': setAiModels(await api('/ai-models')); break;
         case 'theming': setSettings(await api('/platform-settings')); break;
-        case 'activity': setActivity(await api('/activity')); break;
+        case 'activity-logs': setActivity(await api('/activity')); break;
       }
     } catch (e: any) {
       toast.error(e.message);
@@ -414,8 +414,13 @@ export const SuperAdminDashboard: React.FC = () => {
 
   const handleUpdateUser = async (userId: string, updates: any) => {
     try {
-      await api(`/users/${userId}`, { method: 'PUT', body: JSON.stringify(updates) });
-      toast.success('User updated');
+      if (updates.delete) {
+        await api(`/users/${userId}`, { method: 'DELETE' });
+        toast.success('User deleted successfully');
+      } else {
+        await api(`/users/${userId}`, { method: 'PUT', body: JSON.stringify(updates) });
+        toast.success('User updated successfully');
+      }
       setUsers(await api('/users'));
     } catch (e: any) { toast.error(e.message); }
   };
@@ -428,8 +433,8 @@ export const SuperAdminDashboard: React.FC = () => {
     { id: 'plans', label: 'Plans', icon: TrendingUp },
     { id: 'credit-packages', label: 'Credit Packages', icon: Coins },
     { id: 'ai-models', label: 'AI Models', icon: Server },
-    { id: 'theming', label: 'Theming', icon: PaintBucket },
-    { id: 'activity', label: 'Activity', icon: Activity },
+    { id: 'theming', label: 'Platform Theming', icon: PaintBucket },
+    { id: 'activity-logs', label: 'Activity Logs', icon: Activity },
   ] as const;
 
   return (
@@ -898,7 +903,7 @@ export const SuperAdminDashboard: React.FC = () => {
           )}
 
           {/* ── ACTIVITY ── */}
-          {activeTab === 'activity' && (
+          {activeTab === 'activity-logs' && (
             <div>
               <h2 className="text-2xl font-bold text-gray-900 mb-6">Global Activity Feed</h2>
               {activity.length === 0 ? (
@@ -924,7 +929,7 @@ export const SuperAdminDashboard: React.FC = () => {
                           <td className="px-5 py-3 text-sm text-gray-500">{a.company_name || '—'}</td>
                           <td className="px-5 py-3 text-sm font-mono text-blue-700">{a.action}</td>
                           <td className="px-5 py-3 text-sm text-gray-500">{a.entity_type && `${a.entity_type}${a.entity_id ? ` #${a.entity_id.substring(0,8)}` : ''}`}</td>
-                          <td className="px-5 py-3 text-xs text-gray-400">{new Date(a.created_at).toLocaleString()}</td>
+                          <td className="px-5 py-3 text-xs text-gray-400">{new Date(a.time || a.created_at).toLocaleString()}</td>
                         </tr>
                       ))}
                     </tbody>

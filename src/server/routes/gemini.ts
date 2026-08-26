@@ -8,6 +8,7 @@ import {
 } from "../../services/gemini-server.js";
 import { CreditService } from "../services/creditService.js";
 import { requireAuth, AuthenticatedRequest } from "../middleware/auth.js";
+import { LeadService, normalizeDomain, normalizeName } from "../services/leadService.js";
 import { requireActiveSubscription } from "../middleware/subscriptionGuard.js";
 
 const router = Router();
@@ -25,6 +26,18 @@ router.post("/scrape", async (req, res) => {
   const companyId = (req as AuthenticatedRequest).user?.companyId;
   const userId = (req as AuthenticatedRequest).user?.id;
   const limit = filters?.limit || 10;
+
+  let existingNames: string[] = [];
+  let existingDomains: string[] = [];
+  if (companyId) {
+    try {
+      ({ names: existingNames, domains: existingDomains } = await LeadService.getExistingLeadIdentifiers(companyId));
+    } catch (error) {
+      console.warn("Unable to load existing leads for deduplication:", error);
+    }
+  }
+  const existingNamesSet = new Set(existingNames.map(normalizeName));
+  const existingDomainsSet = new Set(existingDomains.map(normalizeDomain));
 
   try {
     if (companyId) {
@@ -100,12 +113,12 @@ router.post("/scrape", async (req, res) => {
         cleanText = cleanText.slice(0, -3);
       }
       const results = JSON.parse(cleanText);
-      // Ensure no duplicates are returned by checking against existing names
-      const existingNames: string[] = req.body.existingNames || [];
-      const existingNamesSet = new Set(existingNames.map((n: string) => n?.toLowerCase()));
-      const uniqueResults = results.filter(
-        (r: any) => !r.name || !existingNamesSet.has(r.name.toLowerCase())
-      );
+      // Deduplicate against the authenticated company's database records.
+      const uniqueResults = results.filter((r: any) => {
+        const name = normalizeName(r.name);
+        const domain = normalizeDomain(r.website || r.domain);
+        return (!name || !existingNamesSet.has(name)) && (!domain || !existingDomainsSet.has(domain));
+      });
       res.json({ results: uniqueResults });
     } else {
       res.status(500).json({ error: "No text returned from Gemini." });
@@ -173,9 +186,26 @@ router.post("/search", async (req, res) => {
       }
     };
 
+    const companyId = (req as AuthenticatedRequest).user?.companyId;
+    let existingNames: string[] = [];
+    let existingDomains: string[] = [];
+    if (companyId) {
+      try {
+        ({ names: existingNames, domains: existingDomains } = await LeadService.getExistingLeadIdentifiers(companyId));
+      } catch (error) {
+        console.warn("Unable to load existing leads for search deduplication:", error);
+      }
+    }
+
+    const filters = {
+      ...(req.body.filters || {}),
+      existingNames,
+      excludeDomains: existingDomains,
+    };
+
     const data = await searchPlaces(
       req.body.query,
-      req.body.filters,
+      filters,
       onStreamUpdate
     );
 

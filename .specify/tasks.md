@@ -22,7 +22,7 @@
 
 ## Phase 3: Routing & Layout Migration
 
-- [ ] **Task 3.1: Global Layout (`app/layout.tsx`)**
+- [ ] **Task 3.1: Global Layout (`app/layout.tsx`)
   - Action: Create the root layout. Move global CSS imports and HTML shell structure here.
   - Details: Include any global providers (e.g., Toast providers, Auth contexts) as Client Components if necessary.
 
@@ -60,3 +60,32 @@
 
 - [ ] **Task 6.3: Commit and Push**
   - Action: Commit all changes to the feature branch and push.
+
+## Feature Enhancement Continuation — Completed
+
+- [x] **Smart Search: database-backed deduplication**
+  - Added `src/server/services/leadService.ts` to load company-scoped lead names and normalized website domains.
+  - Updated `/api/gemini/scrape` and `/api/gemini/search` to use authenticated company records rather than relying only on client-supplied exclusions.
+  - Deduplication now checks both normalized names and domains.
+
+- [x] **Multi-city search support**
+  - Existing multi-city filter data is recognized by the search service and passed through the AI search pipeline.
+
+- [x] **SuperAdmin dashboard wiring**
+  - User deletion uses `DELETE /users/:id` while updates continue to use `PUT`.
+  - Platform Theming remains available through the existing inline panel and `/platform-settings` API.
+  - Activity Logs tab identifier, loader branch, and API timestamp rendering are aligned with `/activity`.
+  - Credit Packages and AI Models tabs/modal flows are present and connected to their CRUD endpoints.
+
+- [x] **InstaPay checkout method**
+  - Existing billing flow supports InstaPay manual payment submission with receipt URL and SuperAdmin approval queue.
+  - Official documentation review confirmed that Egypt's InstaPay public site describes the payment network but does not expose a public merchant checkout API in the available sources; no undocumented API credentials or endpoints were invented.
+
+- [x] **Validation**
+  - TypeScript: `npx tsc --noEmit` passed.
+  - Vitest: 2 test files and 5 tests passed.
+  - Added the Vite 6-compatible `@vitejs/plugin-react@5.0.4` development dependency required by the existing Vitest configuration.
+
+## Notes
+
+The active working branch is `feat/smart-search-multicity-superadmin-instapay`, based on the repository's migrated Next.js branch. Payment automation remains intentionally receipt-based until the merchant account/API contract for InstaPay is supplied by the provider.
