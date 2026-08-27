@@ -44,14 +44,14 @@
 
 ## Phase 5 — Validation
 
-- [ ] **5.1 Run type checking and existing tests**
-- [ ] **5.2 Add or update interaction tests for primary CTA and navigation behavior**
-- [ ] **5.3 Run production build and route smoke checks**
-- [ ] **5.4 Review responsive, keyboard, semantic, contrast, and reduced-motion behavior**
-- [ ] **5.5 Verify backend variables, API routes, and payload contracts are unchanged**
+- [x] **5.1 Run type checking and existing tests**
+- [x] **5.2 Add or update interaction tests for primary CTA and navigation behavior**
+- [x] **5.3 Run production build and route smoke checks**
+- [x] **5.4 Review responsive, keyboard, semantic, contrast, and reduced-motion behavior**
+- [x] **5.5 Verify backend variables, API routes, and payload contracts are unchanged**
 
 ## Phase 6 — Delivery
 
-- [ ] **6.1 Update this task file and feature plan with implementation results**
-- [ ] **6.2 Commit and push the redesign branch**
-- [ ] **6.3 Restart and deliver the verified preview**
+- [x] **6.1 Update this task file and feature plan with implementation results**
+- [x] **6.2 Commit and push the redesign branch**
+- [x] **6.3 Restart and deliver the verified preview**
