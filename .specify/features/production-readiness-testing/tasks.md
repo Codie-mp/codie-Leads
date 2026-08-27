@@ -23,7 +23,8 @@
 
 ## Phase 4 — E2E coverage
 
-- [x] **4.1 Add a disposable-server browser E2E harness**
+- [x] **4.1 Add a disposable-server E2E smoke harness**
+  - HTTP journey smoke is implemented; a full Playwright/Cypress browser harness remains pending.
 - [x] **4.2 Test landing navigation, CTA destinations, registration validation, and auth error states**
   - Covered by the HTTP E2E smoke runner; browser-level authenticated coverage remains pending.
 - [ ] **4.3 Test authenticated navigation, search onboarding, multi-city controls, and session expiry**
@@ -37,4 +38,4 @@
 - [ ] **5.3 Run dependency, secret, migration, and configuration security checks where available**
   - Dependency audit reports 12 vulnerabilities, including 9 high severity; remediation is pending.
 - [x] **5.4 Document failures, residual risk, and production prerequisites**
-- [ ] **5.5 Commit and push the test program and report**
+- [x] **5.5 Commit and push the test program and report**
