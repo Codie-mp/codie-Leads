@@ -38,6 +38,89 @@ const cleanLeadPayload = (payload: any) => {
 
 export async function syncLegacySchema() {
   try {
+    const createQueries = [
+      `CREATE TABLE IF NOT EXISTS pricing_plans (
+        id VARCHAR(255) PRIMARY KEY,
+        name VARCHAR(255) NOT NULL,
+        monthly_price INT NOT NULL,
+        yearly_price INT NOT NULL,
+        credits_per_month INT NOT NULL,
+        max_members INT DEFAULT 1,
+        description TEXT,
+        active BOOLEAN DEFAULT true,
+        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+        updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
+      )`,
+      `CREATE TABLE IF NOT EXISTS credit_packages (
+        id VARCHAR(255) PRIMARY KEY,
+        name VARCHAR(255) NOT NULL,
+        price INT NOT NULL,
+        credits INT NOT NULL,
+        description TEXT,
+        active BOOLEAN DEFAULT true,
+        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+        updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
+      )`,
+      `CREATE TABLE IF NOT EXISTS ai_models (
+        id VARCHAR(255) PRIMARY KEY,
+        name VARCHAR(255) NOT NULL,
+        provider VARCHAR(100) NOT NULL,
+        cost_per_1k_tokens_in DOUBLE NOT NULL,
+        cost_per_1k_tokens_out DOUBLE NOT NULL,
+        profit_multiplier DOUBLE DEFAULT 3.0,
+        active BOOLEAN DEFAULT true,
+        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+        updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
+      )`,
+      `CREATE TABLE IF NOT EXISTS credit_transactions (
+        id VARCHAR(255) PRIMARY KEY,
+        company_id VARCHAR(255) NOT NULL,
+        amount INT NOT NULL,
+        type VARCHAR(50) NOT NULL,
+        description TEXT,
+        performed_by VARCHAR(255),
+        reference_id VARCHAR(255),
+        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+      )`,
+      `CREATE TABLE IF NOT EXISTS platform_settings (
+        id VARCHAR(255) PRIMARY KEY,
+        \`key\` VARCHAR(100) NOT NULL UNIQUE,
+        value JSON,
+        updated_by VARCHAR(255),
+        updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
+      )`,
+      `CREATE TABLE IF NOT EXISTS activity_logs (
+        id VARCHAR(255) PRIMARY KEY,
+        user_id VARCHAR(255),
+        company_id VARCHAR(255),
+        action VARCHAR(100) NOT NULL,
+        entity_type VARCHAR(50),
+        entity_id VARCHAR(255),
+        metadata JSON,
+        ip_address VARCHAR(45),
+        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+      )`,
+      `CREATE TABLE IF NOT EXISTS notifications (
+        id VARCHAR(255) PRIMARY KEY,
+        user_id VARCHAR(255),
+        company_id VARCHAR(255),
+        type VARCHAR(50) NOT NULL,
+        title VARCHAR(255),
+        message TEXT,
+        is_read BOOLEAN DEFAULT false,
+        metadata JSON,
+        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+      )`
+    ];
+
+    for (const q of createQueries) {
+      try {
+        await tidb.execute(sql.raw(q));
+      } catch (err: any) {
+        console.warn(`Schema create notice: ${err.message}`);
+      }
+    }
+
     const alterQueries = [
       "ALTER TABLE `users` ADD COLUMN IF NOT EXISTS `is_verified` BOOLEAN DEFAULT false",
       "ALTER TABLE `users` ADD COLUMN IF NOT EXISTS `otp` VARCHAR(6)",
