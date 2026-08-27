@@ -1,0 +1,43 @@
+# CodieLead
+
+> CodieLead is an AI-assisted B2B prospecting workspace for turning ideal customer profiles into clean, outreach-ready lead lists.
+
+## Product
+
+CodieLead helps sales teams discover businesses, target multiple cities, deduplicate company leads, enrich records, manage campaigns, and prepare cold outreach. Search and ICP scraping use configured AI/search providers and protected server routes; results are not a guarantee of business accuracy.
+
+## Features
+
+- Natural-language ICP and Smart Search
+- Multi-city geographic targeting
+- Name/domain deduplication scoped to each company
+- Lead saving, filtering, scoring, tagging, categories, and Kanban management
+- AI enrichment and outreach drafting
+- Campaign management
+- Spreadsheet-compatible CSV and JSON export
+- Subscription, credits, and manual receipt-based InstaPay workflow
+- CRM, SMTP, Redis, S3/R2, webhook, and extension integrations where configured
+- SuperAdmin platform controls with privileged authorization
+
+## Architecture
+
+The frontend uses Next.js 16 App Router, React, and TypeScript. Route adapters live in `src/app`. A custom Node.js/Express server owns `/api/*` routes and delegates page rendering to Next.js. Drizzle ORM and mysql2 access TiDB/MySQL. Feature entrypoints live in `src/features`; atomic-design entrypoints live in `src/components/ui/{atoms,molecules,organisms}`. The application is designed to remain stateless for horizontal scaling.
+
+## Public routes
+
+`/`, `/login`, `/register`, `/accept-invite`, `/privacy`, and `/terms` are public or tokenized routes. `/app` requires authentication. `/superadmin` requires SuperAdmin authorization.
+
+## Documentation
+
+- [Documentation index](/docs/index.md)
+- [Architecture](/docs/architecture.md)
+- [Routes](/docs/routes.md)
+- [Features](/docs/features.md)
+- [API](/docs/api.md)
+- [Security](/docs/security.md)
+- [Testing](/docs/testing.md)
+- [Production readiness](/docs/production-readiness.md)
+
+## Current verification
+
+The repository currently has 55 passing Vitest tests across 10 files, passing ESLint CLI, strict TypeScript, E2E HTTP smoke, production build, and a production-only high-severity dependency audit with zero high-severity findings. Full browser E2E, staging rehearsal, backup/restore, observability, and load testing remain release gates.

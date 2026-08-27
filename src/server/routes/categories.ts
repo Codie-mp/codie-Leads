@@ -17,6 +17,19 @@ router.post("/", async (req, res) => {
   }
 });
 
+router.put("/:id", async (req, res) => {
+  try {
+    const { name, color } = req.body;
+    await tidb.update(categories)
+      .set({ name, color })
+      .where(eq(categories.id, req.params.id));
+    res.json({ success: true });
+  } catch (e) {
+    console.error(e);
+    res.status(500).json({ error: "Failed to update category" });
+  }
+});
+
 router.delete("/:id", async (req, res) => {
   try {
     await tidb.delete(categories).where(eq(categories.id, req.params.id));

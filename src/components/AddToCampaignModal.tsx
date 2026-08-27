@@ -1,3 +1,4 @@
+"use client";
 import React, { useState } from 'react';
 import { useStore } from '@/store/useLeadStore';
 import { Modal } from './ui/Modal';

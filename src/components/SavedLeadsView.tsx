@@ -1,3 +1,4 @@
+"use client";
 import React, { useState, useEffect } from 'react';
 import { useStore } from '@/store/useLeadStore';
 import { motion, AnimatePresence } from 'motion/react';
@@ -481,7 +482,7 @@ export function SavedLeadsView() {
                     )}
                     {lead.reviewsSummary && lead.reviewsSummary !== 'N/A' && (
                       <div className="flex items-start gap-2 mt-2 p-2 bg-gray-50 rounded-lg border border-gray-100">
-                        <span className="text-xs italic text-gray-600 line-clamp-2">"{lead.reviewsSummary}"</span>
+                        <span className="text-xs italic text-gray-600 line-clamp-2">&quot;{lead.reviewsSummary}&quot;</span>
                       </div>
                     )}
                   </div>

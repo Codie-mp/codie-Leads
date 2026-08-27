@@ -24,6 +24,9 @@ export const users = mysqlTable('users', {
   isVerified: boolean('is_verified').default(false),
   otp: varchar('otp', { length: 6 }),
   otpExpiresAt: timestamp('otp_expires_at'),
+  otpLastSentAt: timestamp('otp_last_sent_at'),
+  otpSendCount: int('otp_send_count').default(0),
+  otpSendWindowStartedAt: timestamp('otp_send_window_started_at'),
   inviteToken: varchar('invite_token', { length: 255 }),
   createdAt: timestamp('created_at').defaultNow(),
   updatedAt: timestamp('updated_at').defaultNow().onUpdateNow()

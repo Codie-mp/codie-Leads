@@ -4,6 +4,17 @@ import { strictLimiter } from "../middleware/rateLimiter.js";
 
 const router = Router();
 
+function sendAuthError(res: any, error: any, fallbackStatus: number) {
+  const status = Number.isInteger(error?.statusCode) ? error.statusCode : fallbackStatus;
+  if (error?.retryAfterSeconds) {
+    res.setHeader("Retry-After", String(error.retryAfterSeconds));
+  }
+  return res.status(status).json({
+    error: error?.message || "Authentication request failed",
+    ...(error?.retryAfterSeconds ? { retryAfterSeconds: error.retryAfterSeconds } : {}),
+  });
+}
+
 router.post("/login", strictLimiter, async (req, res) => {
   try {
     const { email, password } = req.body;
@@ -14,7 +25,7 @@ router.post("/login", strictLimiter, async (req, res) => {
     const tokens = await AuthService.login(email, password);
     res.json(tokens);
   } catch (err: any) {
-    res.status(401).json({ error: err.message });
+    sendAuthError(res, err, 401);
   }
 });
 
@@ -28,7 +39,7 @@ router.post("/register", strictLimiter, async (req, res) => {
     const result = await AuthService.register(email, password, companyName);
     res.json(result);
   } catch (err: any) {
-    res.status(400).json({ error: err.message });
+    sendAuthError(res, err, 400);
   }
 });
 
@@ -42,7 +53,7 @@ router.post("/verify-otp", strictLimiter, async (req, res) => {
     const tokens = await AuthService.verifyOTP(email, otp);
     res.json(tokens);
   } catch (err: any) {
-    res.status(400).json({ error: err.message });
+    sendAuthError(res, err, 400);
   }
 });
 
@@ -56,7 +67,7 @@ router.post("/resend-otp", strictLimiter, async (req, res) => {
     const result = await AuthService.resendOTP(email, purpose);
     res.json(result);
   } catch (err: any) {
-    res.status(400).json({ error: err.message });
+    sendAuthError(res, err, 400);
   }
 });
 
@@ -70,7 +81,7 @@ router.post("/forgot-password", strictLimiter, async (req, res) => {
     const result = await AuthService.forgotPassword(email);
     res.json(result);
   } catch (err: any) {
-    res.status(400).json({ error: err.message });
+    sendAuthError(res, err, 400);
   }
 });
 
@@ -84,7 +95,7 @@ router.post("/reset-password", strictLimiter, async (req, res) => {
     const tokens = await AuthService.resetPassword(email, otp, newPassword);
     res.json(tokens);
   } catch (err: any) {
-    res.status(400).json({ error: err.message });
+    sendAuthError(res, err, 400);
   }
 });
 
@@ -98,7 +109,7 @@ router.post("/accept-invite", strictLimiter, async (req, res) => {
     const tokens = await AuthService.acceptInvite(token, password);
     res.json(tokens);
   } catch (err: any) {
-    res.status(400).json({ error: err.message });
+    sendAuthError(res, err, 400);
   }
 });
 

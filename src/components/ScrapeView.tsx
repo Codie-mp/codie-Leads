@@ -1,9 +1,12 @@
+"use client";
 import React, { useState } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
-import { Target, Search, Sparkles, Loader2, Database, ExternalLink, SlidersHorizontal, Star, MapPin, Phone, DollarSign, X } from 'lucide-react';
+import { Target, Search, Sparkles, Loader2, Database, ExternalLink, SlidersHorizontal, Star, MapPin, Phone, DollarSign, X, FolderPlus } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { toast } from 'sonner';
 import { useStore } from '@/store/useLeadStore';
+import { CategoryManagerModal } from './CategoryManagerModal';
+import { handleApiError } from '@/lib/errorHandler';
 
 interface ScrapeResult {
   name: string;
@@ -14,6 +17,7 @@ interface ScrapeResult {
   rating?: string;
   priceLevel?: string;
   phone?: string;
+  email?: string;
   address?: string;
 }
 
@@ -22,12 +26,13 @@ interface ScrapeViewProps {
 }
 
 export function ScrapeView({ onNavigateToSaved }: ScrapeViewProps) {
-  const { bulkAddLeads } = useStore();
+  const { bulkAddLeads, categories } = useStore();
   const [icp, setIcp] = useState('');
   const [isScraping, setIsScraping] = useState(false);
   const [results, setResults] = useState<ScrapeResult[]>([]);
-  const [error, setError] = useState<string | null>(null);
   const [showFilters, setShowFilters] = useState(false);
+  const [selectedCategoryId, setSelectedCategoryId] = useState<string>('');
+  const [isCategoryModalOpen, setIsCategoryModalOpen] = useState(false);
   const [filters, setFilters] = useState<{
     limit: number;
     minRating: string;
@@ -43,10 +48,9 @@ export function ScrapeView({ onNavigateToSaved }: ScrapeViewProps) {
   const handleScrape = async () => {
     if (!icp.trim()) return;
     setIsScraping(true);
-    setError(null);
     setResults([]);
     try {
-      const response = await fetch('/api/scrape', {
+      const response = await fetch('/api/gemini/scrape', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ 
@@ -63,27 +67,15 @@ export function ScrapeView({ onNavigateToSaved }: ScrapeViewProps) {
         const errorText = await response.text();
         throw new Error(errorText || 'Scraping failed');
       }
+      const contentType = response.headers.get("content-type");
+      if (!contentType || contentType.indexOf("application/json") === -1) {
+        throw new Error(`Expected JSON but got ${contentType}: ${await response.text()}`);
+      }
       const data = await response.json();
       setResults(data.results || []);
       toast.success(`Found ${data.results?.length || 0} leads matching your profile!`);
-    } catch (err: any) {
-      console.error(err);
-      let errMsg = err?.message || 'Failed to scrape leads using Gemini. Please verify connection and try again.';
-      try {
-        const parsed = JSON.parse(errMsg);
-        if (parsed.error) {
-           if (typeof parsed.error === 'string') errMsg = parsed.error;
-           else if (parsed.error.message) errMsg = parsed.error.message;
-        }
-      } catch (e) {}
-
-      if (errMsg.includes("high demand") || errMsg.includes("503")) {
-        errMsg = "AI Model is currently experiencing high demand. Please try again later.";
-      } else if (errMsg.includes('api key') || errMsg.includes('API_KEY')) {
-        errMsg = "API Key error. Please check your configuration.";
-      }
-      setError(errMsg);
-      toast.error(errMsg);
+    } catch (error: any) {
+      handleApiError(error, "Scraping Failed", () => handleScrape());
     } finally {
       setIsScraping(false);
     }
@@ -118,10 +110,12 @@ export function ScrapeView({ onNavigateToSaved }: ScrapeViewProps) {
         title: r.title || '',
         address: r.address && r.address !== 'N/A' ? r.address : '',
         phone: r.phone && r.phone !== 'N/A' ? r.phone : '',
+        email: r.email && r.email !== 'N/A' ? r.email : '',
         rating: parsedRating,
         source: 'search' as const,
         status: 'new' as const,
         tags: ['scraped'],
+        categoryId: selectedCategoryId || undefined,
         createdAt: new Date(),
         updatedAt: new Date(),
       };
@@ -149,7 +143,7 @@ export function ScrapeView({ onNavigateToSaved }: ScrapeViewProps) {
         </div>
         <h2 className="text-3xl font-extrabold text-gray-900 tracking-tight">ICP Web Scraper</h2>
         <p className="text-gray-500 max-w-lg mx-auto">
-          Describe your Ideal Customer Profile (ICP). We'll use the Gemini Google Search grounding feature to scrape exactly what you're looking for across the whole web.
+          Describe your Ideal Customer Profile (ICP). We&apos;ll use the Gemini Google Search grounding feature to scrape exactly what you&apos;re looking for across the whole web.
         </p>
       </div>
 
@@ -190,20 +184,6 @@ export function ScrapeView({ onNavigateToSaved }: ScrapeViewProps) {
               Scrape Web
             </button>
           </div>
-
-          {error && (
-            <div className="bg-red-50 border border-red-200 rounded-xl p-4 mt-4 flex items-start">
-              <div className="flex-shrink-0">
-                <X className="h-5 w-5 text-red-400 mt-0.5" />
-              </div>
-              <div className="ml-3">
-                <h3 className="text-sm font-bold text-red-800">Scraping Failed</h3>
-                <div className="mt-1 text-sm text-red-700">
-                  {error}
-                </div>
-              </div>
-            </div>
-          )}
 
           <AnimatePresence>
             {showFilters && (
@@ -282,15 +262,34 @@ export function ScrapeView({ onNavigateToSaved }: ScrapeViewProps) {
 
       {results.length > 0 && (
         <div className="bg-white rounded-2xl shadow-sm border border-gray-200 overflow-hidden">
-          <div className="p-4 border-b border-gray-100 flex items-center justify-between bg-gray-50">
+          <div className="p-4 border-b border-gray-100 flex flex-col sm:flex-row items-center justify-between bg-gray-50 gap-4">
             <h3 className="font-bold text-gray-900">Found {results.length} Leads</h3>
-            <button 
-              onClick={handleSaveAll}
-              className="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white text-sm font-bold rounded-lg flex items-center gap-2 transition-colors"
-            >
-              <Database className="w-4 h-4" />
-              Save to Database
-            </button>
+            <div className="flex items-center gap-2 w-full sm:w-auto">
+              <select
+                value={selectedCategoryId}
+                onChange={(e) => setSelectedCategoryId(e.target.value)}
+                className="px-3 py-2 bg-white border border-gray-200 rounded-lg text-sm focus:outline-none focus:border-blue-400 min-w-[150px]"
+              >
+                <option value="">No Category</option>
+                {categories.map((c: any) => (
+                  <option key={c.id} value={c.id}>{c.name}</option>
+                ))}
+              </select>
+              <button 
+                onClick={() => setIsCategoryModalOpen(true)}
+                className="p-2 text-gray-500 hover:text-blue-600 hover:bg-blue-50 rounded-lg transition-colors border border-transparent hover:border-blue-200"
+                title="Manage Categories"
+              >
+                <FolderPlus className="w-5 h-5" />
+              </button>
+              <button 
+                onClick={handleSaveAll}
+                className="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white text-sm font-bold rounded-lg flex items-center gap-2 transition-colors ml-2"
+              >
+                <Database className="w-4 h-4" />
+                Save to Database
+              </button>
+            </div>
           </div>
           <div className="divide-y divide-gray-100">
             {results.map((result, i) => (
@@ -347,6 +346,12 @@ export function ScrapeView({ onNavigateToSaved }: ScrapeViewProps) {
                           {result.phone}
                         </span>
                       )}
+                      {result.email && result.email !== 'N/A' && (
+                        <span className="flex items-center gap-1">
+                          <span className="text-gray-400 w-3.5 h-3.5">@</span>
+                          {result.email}
+                        </span>
+                      )}
                     </div>
                   </div>
 
@@ -369,6 +374,8 @@ export function ScrapeView({ onNavigateToSaved }: ScrapeViewProps) {
           </div>
         </div>
       )}
+
+      <CategoryManagerModal isOpen={isCategoryModalOpen} onClose={() => setIsCategoryModalOpen(false)} />
     </div>
   );
 }

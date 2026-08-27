@@ -1,3 +1,4 @@
+"use client";
 import React, { useState, useEffect } from 'react';
 import { CreditCard, Zap, ShieldCheck, Clock, CheckCircle2, AlertCircle, XCircle, ArrowUpRight, Upload } from 'lucide-react';
 import { toast } from 'sonner';

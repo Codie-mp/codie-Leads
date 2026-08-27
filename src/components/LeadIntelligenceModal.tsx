@@ -1,3 +1,4 @@
+"use client";
 import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
 import { Modal } from './ui/Modal';
@@ -265,7 +266,7 @@ export function LeadIntelligenceModal({ isOpen, onClose, lead }: LeadIntelligenc
       if (!response.ok) throw new Error(await response.text());
       const resData = await response.json();
       const text = resData.text || "No recent signals found.";
-      const lines = text.split('\n').filter(l => l.trim().length > 10).slice(0, 3);
+      const lines = text.split('\n').filter((l: string) => l.trim().length > 10).slice(0, 3);
       setSignals(lines);
       
       if (lead.id) {
@@ -313,7 +314,7 @@ export function LeadIntelligenceModal({ isOpen, onClose, lead }: LeadIntelligenc
             <div>
               <h4 className="font-bold text-blue-900">The Scoop ☕</h4>
               <p className="text-sm text-blue-700 mt-1">
-                Gemini did the homework on this business. Here's the inside info.
+                Gemini did the homework on this business. Here&apos;s the inside info.
               </p>
             </div>
           </div>
@@ -447,7 +448,7 @@ export function LeadIntelligenceModal({ isOpen, onClose, lead }: LeadIntelligenc
                     <h3>The Killer Line</h3>
                   </div>
                   <p className="text-sm text-blue-900 italic border-l-2 border-blue-300 pl-3 py-1">
-                    "{data.iceBreaker}"
+                    &quot;{data.iceBreaker}&quot;
                   </p>
                 </motion.div>
 

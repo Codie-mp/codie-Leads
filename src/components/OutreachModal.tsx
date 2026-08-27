@@ -1,3 +1,4 @@
+"use client";
 import React, { useState } from 'react';
 import { Modal } from './ui/Modal';
 import { Lead } from '@/lib/schema';
@@ -99,7 +100,7 @@ export function OutreachModal({ isOpen, onClose, lead }: OutreachModalProps) {
             </div>
             <div>
               <h4 className="font-semibold text-blue-900">AI Personalization</h4>
-              <p className="text-xs text-blue-700">Gemini analyzes the lead's data to write a custom hook.</p>
+              <p className="text-xs text-blue-700">Gemini analyzes the lead&apos;s data to write a custom hook.</p>
             </div>
           </div>
           <select 

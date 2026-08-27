@@ -5,6 +5,7 @@ import { db } from "../../db/index.js";
 import { users, companies } from "../../db/schema.js";
 import { eq } from "drizzle-orm";
 import { EmailService } from "./emailService.js";
+import { assertOtpSendAllowed, OTP_RESEND_COOLDOWN_SECONDS } from "./otpPolicy.js";
 
 const JWT_SECRET = process.env.JWT_SECRET || "fallback_secret";
 const JWT_REFRESH_SECRET = process.env.JWT_REFRESH_SECRET || "fallback_refresh_secret";
@@ -38,6 +39,32 @@ export class AuthService {
     return Math.floor(100000 + Math.random() * 900000).toString();
   }
 
+  private static async sendOtpForUser(user: any, purpose: 'verification' | 'reset') {
+    const now = new Date();
+    const nextWindow = assertOtpSendAllowed({
+      lastSentAt: user.otpLastSentAt,
+      sendCount: user.otpSendCount,
+      windowStartedAt: user.otpSendWindowStartedAt,
+    }, now);
+    const otp = this.generateOTP();
+    const expires = new Date(now.getTime() + 15 * 60 * 1000);
+
+    // Persist the throttle state before delivery. A failed delivery consumes the
+    // attempt deliberately so an SMTP outage cannot be abused as a send loop.
+    await db.update(users)
+      .set({
+        otp,
+        otpExpiresAt: expires,
+        otpLastSentAt: now,
+        otpSendCount: nextWindow.sendCount,
+        otpSendWindowStartedAt: nextWindow.windowStartedAt,
+      })
+      .where(eq(users.id, user.id));
+
+    await EmailService.sendOTP(user.email, otp, purpose);
+    return { success: true, cooldownSeconds: OTP_RESEND_COOLDOWN_SECONDS };
+  }
+
   static async login(email: string, password: string) {
     const userRecords = await db.select().from(users).where(eq(users.email, email));
     if (userRecords.length === 0) {
@@ -51,14 +78,7 @@ export class AuthService {
     }
 
     if (!user.isVerified) {
-      // Auto resend OTP
-      const otp = this.generateOTP();
-      const expires = new Date(Date.now() + 15 * 60000);
-      await db.update(users)
-        .set({ otp, otpExpiresAt: expires })
-        .where(eq(users.id, user.id));
-      
-      await EmailService.sendOTP(email, otp, 'verification');
+      await this.sendOtpForUser(user, 'verification');
       throw new Error("UNVERIFIED"); // Special string we can catch on the frontend
     }
 
@@ -81,10 +101,11 @@ export class AuthService {
     const userId = crypto.randomUUID();
     const passwordHash = await this.hashPassword(password);
     
-    const isSuperAdmin = process.env.SUPER_ADMIN_EMAIL && email.toLowerCase() === process.env.SUPER_ADMIN_EMAIL.toLowerCase();
+    const isSuperAdmin: boolean = !!(process.env.SUPER_ADMIN_EMAIL && email.toLowerCase() === process.env.SUPER_ADMIN_EMAIL.toLowerCase());
 
     const otp = this.generateOTP();
-    const expires = new Date(Date.now() + 15 * 60000); // 15 mins
+    const now = new Date();
+    const expires = new Date(now.getTime() + 15 * 60000); // 15 mins
 
     await db.insert(companies).values({
       id: companyId,
@@ -100,15 +121,18 @@ export class AuthService {
       email: email,
       passwordHash: passwordHash,
       role: isSuperAdmin ? 'admin' : 'admin',
-      isSuperAdmin: isSuperAdmin,
+      isSuperAdmin: isSuperAdmin ?? false,
       isVerified: false,
       otp: otp,
-      otpExpiresAt: expires
+      otpExpiresAt: expires,
+      otpLastSentAt: now,
+      otpSendCount: 1,
+      otpSendWindowStartedAt: now
     });
 
     await EmailService.sendOTP(email, otp, 'verification');
 
-    return { success: true, message: "Verification OTP sent" };
+    return { success: true, message: "Verification OTP sent", cooldownSeconds: OTP_RESEND_COOLDOWN_SECONDS };
   }
 
   static async verifyOTP(email: string, otp: string) {
@@ -137,15 +161,7 @@ export class AuthService {
     if (userRecords.length === 0) throw new Error("User not found");
 
     const user = userRecords[0];
-    const otp = this.generateOTP();
-    const expires = new Date(Date.now() + 15 * 60000);
-
-    await db.update(users)
-      .set({ otp, otpExpiresAt: expires })
-      .where(eq(users.id, user.id));
-
-    await EmailService.sendOTP(email, otp, purpose);
-    return { success: true };
+    return this.sendOtpForUser(user, purpose);
   }
 
   static async forgotPassword(email: string) {

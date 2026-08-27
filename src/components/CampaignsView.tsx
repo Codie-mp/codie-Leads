@@ -1,3 +1,4 @@
+"use client";
 import React, { useState } from 'react';
 import { useStore } from '@/store/useLeadStore';
 import { motion, AnimatePresence } from 'motion/react';
@@ -269,7 +270,7 @@ export function CampaignsView() {
                       </div>
                       {step.template && (
                         <div className="mt-2 p-3 bg-gray-50 rounded-lg border border-gray-100 text-xs text-gray-600 relative group">
-                          <div className="line-clamp-3 italic">"{step.template}"</div>
+                          <div className="line-clamp-3 italic">&quot;{step.template}&quot;</div>
                           <button 
                             onClick={() => {
                               navigator.clipboard.writeText(step.template!);

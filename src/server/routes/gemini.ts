@@ -8,6 +8,7 @@ import {
 } from "../../services/gemini-server.js";
 import { CreditService } from "../services/creditService.js";
 import { requireAuth, AuthenticatedRequest } from "../middleware/auth.js";
+import { LeadService, normalizeDomain, normalizeName } from "../services/leadService.js";
 import { requireActiveSubscription } from "../middleware/subscriptionGuard.js";
 
 const router = Router();
@@ -25,6 +26,18 @@ router.post("/scrape", async (req, res) => {
   const companyId = (req as AuthenticatedRequest).user?.companyId;
   const userId = (req as AuthenticatedRequest).user?.id;
   const limit = filters?.limit || 10;
+
+  let existingNames: string[] = [];
+  let existingDomains: string[] = [];
+  if (companyId) {
+    try {
+      ({ names: existingNames, domains: existingDomains } = await LeadService.getExistingLeadIdentifiers(companyId));
+    } catch (error) {
+      console.warn("Unable to load existing leads for deduplication:", error);
+    }
+  }
+  const existingNamesSet = new Set(existingNames.map(normalizeName));
+  const existingDomainsSet = new Set(existingDomains.map(normalizeDomain));
 
   try {
     if (companyId) {
@@ -100,7 +113,13 @@ router.post("/scrape", async (req, res) => {
         cleanText = cleanText.slice(0, -3);
       }
       const results = JSON.parse(cleanText);
-      res.json({ results });
+      // Deduplicate against the authenticated company's database records.
+      const uniqueResults = results.filter((r: any) => {
+        const name = normalizeName(r.name);
+        const domain = normalizeDomain(r.website || r.domain);
+        return (!name || !existingNamesSet.has(name)) && (!domain || !existingDomainsSet.has(domain));
+      });
+      res.json({ results: uniqueResults });
     } else {
       res.status(500).json({ error: "No text returned from Gemini." });
     }
@@ -146,13 +165,59 @@ router.post("/enrich", async (req, res) => {
   }
 });
 
+/**
+ * POST /api/gemini/search
+ * Streaming endpoint using Server-Sent Events (SSE) for real-time lead discovery.
+ * Uses Google Maps + Google Search grounding tools via the Gemini 2.5 Flash model.
+ */
 router.post("/search", async (req, res) => {
   try {
-    const data = await searchPlaces(req.body.query, req.body.filters);
-    res.json(data);
+    res.setHeader("Content-Type", "text/event-stream");
+    res.setHeader("Cache-Control", "no-cache");
+    res.setHeader("Connection", "keep-alive");
+    res.flushHeaders();
+
+    let lastSentIndex = 0;
+    const onStreamUpdate = (places: any[]) => {
+      const newPlaces = places.slice(lastSentIndex);
+      if (newPlaces.length > 0) {
+        res.write(`data: ${JSON.stringify({ places: newPlaces })}\n\n`);
+        lastSentIndex = places.length;
+      }
+    };
+
+    const companyId = (req as AuthenticatedRequest).user?.companyId;
+    let existingNames: string[] = [];
+    let existingDomains: string[] = [];
+    if (companyId) {
+      try {
+        ({ names: existingNames, domains: existingDomains } = await LeadService.getExistingLeadIdentifiers(companyId));
+      } catch (error) {
+        console.warn("Unable to load existing leads for search deduplication:", error);
+      }
+    }
+
+    const filters = {
+      ...(req.body.filters || {}),
+      existingNames,
+      excludeDomains: existingDomains,
+    };
+
+    const data = await searchPlaces(
+      req.body.query,
+      filters,
+      onStreamUpdate
+    );
+
+    const finalNewPlaces = data.places.slice(lastSentIndex);
+    res.write(
+      `data: ${JSON.stringify({ done: true, places: finalNewPlaces })}\n\n`
+    );
+    res.end();
   } catch (e: any) {
     console.error(e);
-    res.status(500).send(e.message);
+    res.write(`data: ${JSON.stringify({ error: e.message })}\n\n`);
+    res.end();
   }
 });
 

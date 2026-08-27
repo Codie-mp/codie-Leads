@@ -1,3 +1,4 @@
+"use client";
 import React, { useState, useRef, useEffect } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
 import { Tag, X, Plus, Check } from 'lucide-react';
@@ -126,7 +127,7 @@ export function TagManager({ leadId, currentTags, onTagsChange }: TagManagerProp
                   onClick={() => handleAddTag(inputValue)}
                   className="w-full text-left px-2 py-1.5 text-xs text-blue-600 hover:bg-blue-50 rounded flex items-center gap-2"
                 >
-                  <Plus className="w-3 h-3" /> Create "{inputValue}"
+                  <Plus className="w-3 h-3" /> Create &quot;{inputValue}&quot;
                 </button>
               )}
               

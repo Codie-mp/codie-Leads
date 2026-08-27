@@ -12,24 +12,24 @@ describe('Footer Navigation and Routing', () => {
       </BrowserRouter>
     );
 
-    const featuresLink = screen.getByText('Features');
+    const featuresLink = screen.getByText('Why CodieLead');
     expect(featuresLink).toHaveAttribute('href', '#features');
 
     const pricingLink = screen.getByText('Pricing');
     expect(pricingLink).toHaveAttribute('href', '#pricing');
   });
 
-  it('renders correct auth paths for Get Started buttons', () => {
+  it('renders correct auth paths for workspace entry buttons', () => {
     render(
       <BrowserRouter>
         <Footer />
       </BrowserRouter>
     );
 
-    const signInLink = screen.getByText('Sign In');
+    const signInLink = screen.getByText('Sign in');
     expect(signInLink).toHaveAttribute('href', '/login');
 
-    const startFreeTrialLink = screen.getByText('Start Free Trial');
-    expect(startFreeTrialLink).toHaveAttribute('href', '/login');
+    const startWorkspaceLink = screen.getByText('Start your free workspace');
+    expect(startWorkspaceLink).toHaveAttribute('href', '/register');
   });
 });

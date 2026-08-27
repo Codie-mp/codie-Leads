@@ -1,18 +1,26 @@
-import React from 'react';
-import { Navigate, useLocation } from 'react-router-dom';
-import { useAuth } from '../../contexts/AuthContext.tsx';
+"use client";
+import React, { useEffect } from 'react';
+import { useRouter, usePathname } from 'next/navigation';
+import { useAuth } from '../../contexts/AuthContext';
 
-export const ProtectedRoute: React.FC<{ children: React.ReactNode, requireSuperAdmin?: boolean }> = ({ children, requireSuperAdmin = false }) => {
+export const ProtectedRoute: React.FC<{ children: React.ReactNode; requireSuperAdmin?: boolean }> = ({
+  children,
+  requireSuperAdmin = false,
+}) => {
   const { isAuthenticated, user } = useAuth();
-  const location = useLocation();
+  const router = useRouter();
+  const pathname = usePathname();
 
-  if (!isAuthenticated) {
-    return <Navigate to="/login" state={{ from: location }} replace />;
-  }
+  useEffect(() => {
+    if (!isAuthenticated) {
+      router.replace(`/login?from=${encodeURIComponent(pathname)}`);
+    } else if (requireSuperAdmin && !user?.isSuperAdmin) {
+      router.replace('/app');
+    }
+  }, [isAuthenticated, requireSuperAdmin, user, router, pathname]);
 
-  if (requireSuperAdmin && !user?.isSuperAdmin) {
-    return <Navigate to="/app" replace />;
-  }
+  if (!isAuthenticated) return null;
+  if (requireSuperAdmin && !user?.isSuperAdmin) return null;
 
   return <>{children}</>;
 };
