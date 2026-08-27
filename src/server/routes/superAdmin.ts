@@ -239,28 +239,28 @@ router.get("/companies", async (req, res) => {
 router.get("/companies/:id", async (req, res) => {
   const { id } = req.params;
   try {
-    const [companyRows] = await db.execute(sql.raw(`SELECT * FROM companies WHERE id = '${id}'`));
-    const [usersRows] = await db.execute(sql.raw(`
+    const [companyRows] = await db.execute(sql`SELECT * FROM companies WHERE id = ${id}`);
+    const [usersRows] = await db.execute(sql`
       SELECT id, email, first_name, last_name, role, is_verified, created_at 
-      FROM users WHERE company_id = '${id}' AND is_super_admin = false
-    `));
-    const [leadStats] = await db.execute(sql.raw(`
+      FROM users WHERE company_id = ${id} AND is_super_admin = false
+    `);
+    const [leadStats] = await db.execute(sql`
       SELECT 
         COUNT(*) as total_leads,
         SUM(CASE WHEN status = 'new' THEN 1 ELSE 0 END) as new_leads,
         SUM(CASE WHEN status = 'contacted' THEN 1 ELSE 0 END) as contacted_leads,
         SUM(CASE WHEN created_at >= DATE_SUB(NOW(), INTERVAL 30 DAY) THEN 1 ELSE 0 END) as leads_last_30d
-      FROM leads WHERE company_id = '${id}'
-    `));
-    const [campaignStats] = await db.execute(sql.raw(`
-      SELECT COUNT(*) as total_campaigns FROM campaigns WHERE company_id = '${id}'
-    `));
-    const [subscriptionRows] = await db.execute(sql.raw(`
-      SELECT * FROM subscriptions WHERE company_id = '${id}' ORDER BY created_at DESC LIMIT 5
-    `));
-    const [activityRows] = await db.execute(sql.raw(`
-      SELECT * FROM activity_logs WHERE company_id = '${id}' ORDER BY created_at DESC LIMIT 20
-    `)).catch(() => [[]]);
+      FROM leads WHERE company_id = ${id}
+    `);
+    const [campaignStats] = await db.execute(sql`
+      SELECT COUNT(*) as total_campaigns FROM campaigns WHERE company_id = ${id}
+    `);
+    const [subscriptionRows] = await db.execute(sql`
+      SELECT * FROM subscriptions WHERE company_id = ${id} ORDER BY created_at DESC LIMIT 5
+    `);
+    const [activityRows] = await db.execute(sql`
+      SELECT * FROM activity_logs WHERE company_id = ${id} ORDER BY created_at DESC LIMIT 20
+    `).catch(() => [[]]);
 
     res.json({
       company: companyRows,
