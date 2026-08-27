@@ -1,74 +1,50 @@
 # CodieLead
 
-CodieLead is an AI-powered B2B lead-generation SaaS built with Next.js 15, an Express custom server, Drizzle ORM, and TiDB/MySQL.
+CodieLead is an AI-assisted B2B prospecting workspace. It turns an ideal customer profile into searchable, deduplicated, outreach-ready lead lists with multi-city targeting, enrichment, campaigns, billing, and administrative controls.
 
-## Run locally
+## Quick start
 
-**Prerequisites:** Node.js 20 or newer and a reachable TiDB/MySQL database.
+Prerequisites are Node.js 20+, npm, and a reachable TiDB/MySQL-compatible database. Copy the required variables into `.env.local`, install dependencies, and start the development server:
 
 ```bash
 npm install
 npm run dev
 ```
 
-The application runs on `http://localhost:3000` by default.
+The local application is normally available at `http://localhost:3000`. Never commit `.env`, tokens, passwords, database credentials, SMTP credentials, or AI keys.
 
-## Required environment variables
+## Environment
 
-Create a local `.env` or `.env.local` file. Do not commit it.
+Database variables are `DB_HOST`, `DB_USER`, `DB_PASSWORD`, `DB_NAME`, and `DB_PORT`. Authentication requires long random `JWT_SECRET` and `JWT_REFRESH_SECRET` values. AI/search configuration uses the provider variables configured for the deployment. OTP delivery uses either `SMTP_HOST`, `SMTP_PORT`, `SMTP_SECURE`, `SMTP_USER`, `SMTP_PASSWORD`, and `SMTP_FROM`, or `GMAIL_USER` and `GMAIL_APP_PASSWORD`; SMTP variables take precedence. Optional integrations include Redis, S3/R2, HubSpot, and payment configuration. Consult `docs/deployment.md` for the full environment matrix.
 
-```dotenv
-DB_HOST=your-database-host
-DB_USER=your-database-user
-DB_PASSWORD=your-database-password
-DB_NAME=your-database-name
-DB_PORT=4000
-JWT_SECRET=replace-with-a-long-random-secret
-JWT_REFRESH_SECRET=replace-with-another-long-random-secret
-```
+## Commands
 
-The AI search configuration should be supplied according to the active provider configuration used by the deployment.
+| Command | Purpose |
+|---|---|
+| `npm run dev` | Development custom server. |
+| `npm run build` | Next.js production build plus Express bundle. |
+| `npm start` | Run the bundled production server. |
+| `npm run lint` | ESLint CLI using the flat configuration. |
+| `npm run type-check` | Strict TypeScript validation. |
+| `npm test` | Vitest unit and integration suite. |
+| `npm run test:e2e` | Dependency-light local HTTP smoke journey. |
+| `npm audit --omit=dev --audit-level=high` | Production dependency security gate. |
+| `npm run docs:check` | Validate required docs, links, stale references, and secret-like patterns. |
 
-## OTP email delivery
+## Architecture and routes
 
-Registration, unverified login, verification-code resend, and password reset require working SMTP credentials. The server no longer reports success when email delivery is unconfigured or rejected.
+Next.js App Router pages live in `src/app`; the custom Node/Express server owns `/api/*` and delegates page rendering to Next. Feature entrypoints are under `src/features/{auth,search,leads,campaigns,billing,admin,shared}`. Atomic UI entrypoints are under `src/components/ui/{atoms,molecules,organisms}`. Detailed ownership is in [`docs/architecture.md`](docs/architecture.md) and [`docs/routes.md`](docs/routes.md).
 
-For Gmail, create an App Password for the sending account and configure:
+Current page routes are `/`, `/login`, `/register`, `/accept-invite`, `/app`, `/superadmin`, `/privacy`, and `/terms`. Search and AI behavior is protected by authentication and active-subscription checks. SuperAdmin access requires the SuperAdmin authorization boundary.
 
-```dotenv
-GMAIL_USER=sender@example.com
-GMAIL_APP_PASSWORD=16-character-app-password
-```
+## Product workflows
 
-For another SMTP provider, configure:
+Users define an ICP, optionally choose filters and multiple cities, run Smart Search or ICP scraping, review deduplicated results, save leads, enrich them, export spreadsheet-compatible CSV or JSON, and add selected leads to campaigns. Billing supports plans and the current manual receipt-based InstaPay process. See [`docs/features.md`](docs/features.md).
 
-```dotenv
-SMTP_HOST=smtp.example.com
-SMTP_PORT=587
-SMTP_SECURE=false
-SMTP_USER=sender@example.com
-SMTP_PASSWORD=provider-password
-SMTP_FROM=CodieLead <sender@example.com>
-```
+## Security, testing, and release status
 
-`SMTP_*` values take precedence over the Gmail variables. `SMTP_SECURE=true` or port `465` enables TLS mode. The server logs a delivery failure and returns an error to the client when the provider rejects a message; OTP codes are never logged.
+Authentication uses JWT access/refresh tokens, hashed passwords, OTP expiry and resend limits, active-company checks, and tenant-scoped data access. All critical automated gates currently pass, including 55 Vitest tests across 10 files, lint, type-check, E2E smoke, production build, and the high-severity production audit. The product is not yet unconditionally production-ready because browser-level authenticated E2E, remaining SuperAdmin mutation hardening, staging migration rehearsal, observability, backup/restore, and load testing remain. See [`docs/production-readiness.md`](docs/production-readiness.md).
 
-## OTP protection
+## Documentation map
 
-OTP requests are protected in two layers. Each account has a 60-second cooldown between sends, and no account may request more than three codes in a rolling 15-minute window. The counters are persisted in the `users` table, so restarting the server does not reset the protection. The client displays the remaining resend cooldown and honors the server-provided retry interval.
-
-## Production build
-
-```bash
-npm run build
-npm start
-```
-
-The build creates the Next.js production output and bundles the Express server into `dist/server.cjs`. The runtime must provide the environment variables above and use a persistent Node.js hosting service that supports a custom server.
-
-## Validation
-
-```bash
-npm run type-check
-npm test
-```
+Start with [`docs/index.md`](docs/index.md). The documentation is intentionally explicit about verified behavior, assumptions, and open risks. Contributions follow the spec-kit process described in [`docs/contributing.md`](docs/contributing.md).

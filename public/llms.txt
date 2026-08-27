@@ -1,34 +1,43 @@
-# Codie-Leads
+# CodieLead
 
-> Codie-Leads is a B2B SaaS platform for Go-To-Market (GTM) Engineers and sales teams to discover, enrich, and manage business leads using AI-powered search grounded in Google Maps and Google Search.
+> CodieLead is an AI-assisted B2B prospecting workspace for turning ideal customer profiles into clean, outreach-ready lead lists.
 
-## What is Codie-Leads?
+## Product
 
-Codie-Leads enables sales professionals to find high-quality business leads by describing their Ideal Customer Profile (ICP) in natural language. The platform uses the Gemini AI model with Google Maps and Google Search grounding tools to discover real businesses, extract contact information, and stream results in real time.
+CodieLead helps sales teams discover businesses, target multiple cities, deduplicate company leads, enrich records, manage campaigns, and prepare cold outreach. Search and ICP scraping use configured AI/search providers and protected server routes; results are not a guarantee of business accuracy.
 
-## Key Features
+## Features
 
-- **ICP Web Scraper**: Describe your target customer in plain English and get a list of matching businesses with names, addresses, phone numbers, websites, ratings, and Google Maps links.
-- **Streaming Lead Discovery**: Results appear in real time as the AI searches, using Server-Sent Events (SSE) for a responsive experience.
-- **Google Maps Grounding**: Leverages Gemini's native Google Maps tool for accurate business data including exact Maps URLs and coordinates.
-- **Lead Management**: Save, organize, and track leads through a full pipeline (new → contacted → qualified → customer).
-- **Category Management**: Organize leads into custom categories with color coding.
-- **Campaign Management**: Group leads into outreach campaigns.
-- **AI Enrichment**: Enrich individual leads with decision-maker information, company signals, and LinkedIn profiles.
-- **Export**: Export leads to CSV or Excel for use in external CRMs.
-- **Credit System**: Usage-based billing with credits per lead discovered or enriched.
+- Natural-language ICP and Smart Search
+- Multi-city geographic targeting
+- Name/domain deduplication scoped to each company
+- Lead saving, filtering, scoring, tagging, categories, and Kanban management
+- AI enrichment and outreach drafting
+- Campaign management
+- Spreadsheet-compatible CSV and JSON export
+- Subscription, credits, and manual receipt-based InstaPay workflow
+- CRM, SMTP, Redis, S3/R2, webhook, and extension integrations where configured
+- SuperAdmin platform controls with privileged authorization
 
-## Technology
+## Architecture
 
-Codie-Leads is built with React (Vite SPA), TypeScript, Express.js, Drizzle ORM, and TiDB (MySQL-compatible distributed database). The AI layer uses the Google Gemini 2.5 Flash model via the `@google/genai` SDK.
+The frontend uses Next.js 16 App Router, React, and TypeScript. Route adapters live in `src/app`. A custom Node.js/Express server owns `/api/*` routes and delegates page rendering to Next.js. Drizzle ORM and mysql2 access TiDB/MySQL. Feature entrypoints live in `src/features`; atomic-design entrypoints live in `src/components/ui/{atoms,molecules,organisms}`. The application is designed to remain stateless for horizontal scaling.
 
-## Use Cases
+## Public routes
 
-- GTM Engineers building targeted outreach lists
-- Sales Development Representatives (SDRs) prospecting new accounts
-- Marketing teams building segmented lead databases
-- Agencies generating leads for clients across multiple cities and verticals
+`/`, `/login`, `/register`, `/accept-invite`, `/privacy`, and `/terms` are public or tokenized routes. `/app` requires authentication. `/superadmin` requires SuperAdmin authorization.
 
-## Docs
+## Documentation
 
-- [ICP Writing Guide](/docs/PERFECT_ICP_GUIDE.md)
+- [Documentation index](/docs/index.md)
+- [Architecture](/docs/architecture.md)
+- [Routes](/docs/routes.md)
+- [Features](/docs/features.md)
+- [API](/docs/api.md)
+- [Security](/docs/security.md)
+- [Testing](/docs/testing.md)
+- [Production readiness](/docs/production-readiness.md)
+
+## Current verification
+
+The repository currently has 55 passing Vitest tests across 10 files, passing ESLint CLI, strict TypeScript, E2E HTTP smoke, production build, and a production-only high-severity dependency audit with zero high-severity findings. Full browser E2E, staging rehearsal, backup/restore, observability, and load testing remain release gates.

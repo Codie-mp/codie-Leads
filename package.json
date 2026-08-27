@@ -12,6 +12,7 @@
     "dev": "tsx server.ts",
     "test": "vitest run",
     "test:e2e": "tsx scripts/e2e-smoke.ts",
+    "docs:check": "node scripts/check-docs.mjs",
     "build": "next build && esbuild server.ts --bundle --platform=node --format=cjs --packages=external --sourcemap --outfile=dist/server.cjs",
     "start": "node dist/server.cjs",
     "clean": "rm -rf dist .next",
