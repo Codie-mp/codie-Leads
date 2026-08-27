@@ -39,6 +39,10 @@ const cleanLeadPayload = (payload: any) => {
 export async function syncLegacySchema() {
   try {
     const alterQueries = [
+      "ALTER TABLE `users` ADD COLUMN IF NOT EXISTS `is_verified` BOOLEAN DEFAULT false",
+      "ALTER TABLE `users` ADD COLUMN IF NOT EXISTS `otp` VARCHAR(6)",
+      "ALTER TABLE `users` ADD COLUMN IF NOT EXISTS `otp_expires_at` TIMESTAMP NULL",
+      "ALTER TABLE `users` ADD COLUMN IF NOT EXISTS `invite_token` VARCHAR(255) NULL",
       "ALTER TABLE `leads` ADD COLUMN IF NOT EXISTS `linkedin_url` varchar(255)",
       "ALTER TABLE `leads` ADD COLUMN IF NOT EXISTS `google_maps_link` text",
       "ALTER TABLE `leads` ADD COLUMN IF NOT EXISTS `reviews` int",
