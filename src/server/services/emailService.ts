@@ -1,20 +1,34 @@
 import nodemailer from "nodemailer";
 
+export class EmailDeliveryError extends Error {
+  code = "EMAIL_DELIVERY_FAILED";
+  statusCode = 503;
+
+  constructor(message = "We could not send the email right now. Please try again later.") {
+    super(message);
+    this.name = "EmailDeliveryError";
+  }
+}
+
+const smtpUser = (process.env.SMTP_USER || process.env.GMAIL_USER)?.trim();
+const smtpPassword = (process.env.SMTP_PASSWORD || process.env.GMAIL_APP_PASSWORD)?.trim();
+const smtpFrom = (process.env.SMTP_FROM || smtpUser)?.trim();
+
 const transporter = nodemailer.createTransport({
-  host: "smtp.gmail.com",
-  port: 587,
-  secure: false, // true for 465, false for other ports
-  auth: {
-    user: process.env.GMAIL_USER,
-    pass: process.env.GMAIL_APP_PASSWORD,
-  },
+  host: process.env.SMTP_HOST || "smtp.gmail.com",
+  port: Number(process.env.SMTP_PORT || 587),
+  secure: process.env.SMTP_SECURE === "true" || process.env.SMTP_PORT === "465",
+  auth: smtpUser && smtpPassword ? { user: smtpUser, pass: smtpPassword } : undefined,
+  connectionTimeout: 10_000,
+  greetingTimeout: 10_000,
+  socketTimeout: 15_000,
 });
 
 export class EmailService {
-  static async sendOTP(email: string, otp: string, purpose: 'verification' | 'reset') {
-    if (!process.env.GMAIL_USER || !process.env.GMAIL_APP_PASSWORD) {
-      console.warn("Gmail SMTP credentials missing. Skipping email send for:", email, "OTP:", otp);
-      return;
+  static async sendOTP(email: string, otp: string, purpose: 'verification' | 'reset'): Promise<void> {
+    if (!smtpUser || !smtpPassword || !smtpFrom) {
+      console.error("OTP email delivery is not configured: set SMTP_USER/SMTP_PASSWORD/SMTP_FROM or GMAIL_USER/GMAIL_APP_PASSWORD.");
+      throw new EmailDeliveryError("Email delivery is not configured. Please contact the administrator.");
     }
 
     const isReset = purpose === 'reset';
@@ -37,11 +51,27 @@ export class EmailService {
       </div>
     `;
 
-    await transporter.sendMail({
-      from: `"Codie Leads" <${process.env.GMAIL_USER}>`,
-      to: email,
-      subject,
-      html,
-    });
+    try {
+      const result = await transporter.sendMail({
+        from: smtpFrom.includes("<") ? smtpFrom : `"Codie Leads" <${smtpFrom}>`,
+        to: email,
+        subject,
+        html,
+      });
+
+      if (!result.accepted?.length) {
+        throw new Error("SMTP server did not accept the OTP message");
+      }
+
+      console.info("OTP email accepted by SMTP", { purpose, messageId: result.messageId });
+    } catch (error: any) {
+      console.error("OTP email delivery failed", {
+        purpose,
+        code: error?.code,
+        responseCode: error?.responseCode,
+        message: error?.message,
+      });
+      throw new EmailDeliveryError();
+    }
   }
 }

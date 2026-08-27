@@ -27,12 +27,21 @@ export const LoginPage: React.FC = () => {
   
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [resendCooldown, setResendCooldown] = useState(0);
 
   useEffect(() => {
     if (searchParamsHook.get('plan')) {
       setView('register');
     }
   }, [searchParamsHook]);
+
+  useEffect(() => {
+    if (resendCooldown <= 0) return;
+    const timer = window.setInterval(() => {
+      setResendCooldown((seconds) => Math.max(0, seconds - 1));
+    }, 1000);
+    return () => window.clearInterval(timer);
+  }, [resendCooldown]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -51,8 +60,9 @@ export const LoginPage: React.FC = () => {
         const data = await res.json();
         if (!res.ok) throw new Error(data.error || 'Registration failed');
         
-        toast.success('Account created! Please check your email for the verification code.');
-        setView('verify');
+          toast.success(data.message || 'Account created! Please check your email for the verification code.');
+          setResendCooldown(data.cooldownSeconds ?? 60);
+          setView('verify');
         
       } else if (view === 'login') {
         const res = await fetch('/api/auth/login', {
@@ -65,6 +75,7 @@ export const LoginPage: React.FC = () => {
         if (!res.ok) {
           if (data.error === "UNVERIFIED") {
             toast.info("Please verify your email first. We sent a new code.");
+            setResendCooldown(60);
             setView('verify');
             return;
           }
@@ -101,6 +112,7 @@ export const LoginPage: React.FC = () => {
         if (!res.ok) throw new Error(data.error || 'Failed to send reset code');
         
         toast.success('Password reset code sent to your email.');
+        setResendCooldown(data.cooldownSeconds ?? 60);
         setView('reset-password');
 
       } else if (view === 'reset-password') {
@@ -138,7 +150,11 @@ export const LoginPage: React.FC = () => {
         body: JSON.stringify({ email, purpose })
       });
       const data = await res.json();
-      if (!res.ok) throw new Error(data.error || 'Failed to resend code');
+      if (!res.ok) {
+        if (data.retryAfterSeconds) setResendCooldown(Number(data.retryAfterSeconds));
+        throw new Error(data.error || 'Failed to resend code');
+      }
+      setResendCooldown(data.cooldownSeconds ?? 60);
       toast.success('Code sent successfully!');
     } catch (err: any) {
       toast.error(err.message);
@@ -369,8 +385,13 @@ export const LoginPage: React.FC = () => {
             {(view === 'verify' || view === 'reset-password') && (
                <div className="text-sm text-center">
                 Didn't receive the code?{' '}
-                <button type="button" onClick={() => resendCode(view === 'verify' ? 'verification' : 'reset')} className="font-medium text-blue-600 hover:text-blue-500 bg-transparent border-none p-0 cursor-pointer">
-                  Resend it
+                <button
+                  type="button"
+                  disabled={isLoading || resendCooldown > 0}
+                  onClick={() => resendCode(view === 'verify' ? 'verification' : 'reset')}
+                  className="font-medium text-blue-600 hover:text-blue-500 bg-transparent border-none p-0 cursor-pointer disabled:text-gray-400 disabled:cursor-not-allowed"
+                >
+                  {resendCooldown > 0 ? `Resend in ${resendCooldown}s` : 'Resend it'}
                 </button>
               </div>
             )}

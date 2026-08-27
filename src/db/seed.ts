@@ -193,7 +193,10 @@ async function runMigration() {
     "ALTER TABLE recent_searches ADD COLUMN IF NOT EXISTS company_id VARCHAR(255)",
     "ALTER TABLE users ADD COLUMN IF NOT EXISTS is_verified BOOLEAN DEFAULT false",
     "ALTER TABLE users ADD COLUMN IF NOT EXISTS otp VARCHAR(6)",
-    "ALTER TABLE users ADD COLUMN IF NOT EXISTS otp_expires_at TIMESTAMP"
+    "ALTER TABLE users ADD COLUMN IF NOT EXISTS otp_expires_at TIMESTAMP",
+    "ALTER TABLE users ADD COLUMN IF NOT EXISTS otp_last_sent_at TIMESTAMP NULL",
+    "ALTER TABLE users ADD COLUMN IF NOT EXISTS otp_send_count INT DEFAULT 0",
+    "ALTER TABLE users ADD COLUMN IF NOT EXISTS otp_send_window_started_at TIMESTAMP NULL"
   ];
 
   for (const q of alterQueries) {
