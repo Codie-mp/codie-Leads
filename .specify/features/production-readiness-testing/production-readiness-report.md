@@ -2,7 +2,7 @@
 
 ## Executive result
 
-The production-readiness testing increment now contains **55 passing tests across 10 files**, covering authentication, OTP policy, JWT middleware, role and permission guards, auth route validation, protected search/AI behavior, credit invariants, lead deduplication normalization, SuperAdmin authorization boundaries, and existing UI/scoring regressions.
+The production-readiness testing increment now contains **55 passing tests across 10 files**, covering authentication, OTP policy, JWT middleware, role and permission guards, auth route validation, protected search/AI behavior, credit invariants, lead deduplication normalization, SuperAdmin authorization boundaries, and existing UI/scoring regressions. The repository now also exposes explicit feature boundaries and atomic-design barrels aligned with the App Router route tree; the detailed mapping is recorded in `architecture-alignment.md`.
 
 This evidence supports a substantially stronger release candidate. The requested high-severity dependency findings are remediated and the lint gate is now non-interactive, but an unconditional production-ready claim still requires full browser E2E, cross-company mutation testing, migration rehearsal, observability, backup/restore, and load testing.
 
@@ -15,7 +15,7 @@ This evidence supports a substantially stronger release candidate. The requested
 | Production build | Pass | Next.js build and bundled server completed |
 | E2E smoke | Pass | `scripts/e2e-smoke.ts` validates landing HTML, CTA copy, FAQ JSON-LD, pricing response, auth boundary, and protected search denial |
 | SuperAdmin auth boundary | Pass | Unauthenticated and ordinary-admin requests rejected; super-admin request reaches controlled DB boundary |
-| Route smoke | Pass | Landing page and pricing endpoint return successfully after server restart |
+| Route smoke | Pass | Landing page and pricing endpoint return successfully after server restart; the E2E smoke was rerun successfully after the architecture refactor |
 | Lint | Pass | `npm run lint` uses ESLint CLI with a native flat config and exits successfully |
 | Dependency audit | Pass at high threshold | `npm audit --omit=dev --audit-level=high` reports **0 vulnerabilities**; four moderate advisories remain outside the requested high-severity threshold |
 
@@ -31,7 +31,7 @@ Route tests exercise required-field validation for every auth route, successful 
 
 ## Remaining release gates
 
-The next implementation tasks are SuperAdmin mutation and injection-regression tests, public middleware checks, and browser-level authenticated journeys. Operational release gates still require isolated staging credentials, migration rehearsal, secret scanning, database backup/restore rehearsal, structured observability checks, and realistic load testing before accepting the 15,000-concurrent-user target.
+The next implementation tasks are SuperAdmin mutation and injection-regression tests, public middleware checks, and browser-level authenticated journeys. The feature-based architecture is intentionally staged through public entrypoints; physical relocation of every legacy component remains a separate, higher-risk migration that should be done incrementally. Operational release gates still require isolated staging credentials, migration rehearsal, secret scanning, database backup/restore rehearsal, structured observability checks, and realistic load testing before accepting the 15,000-concurrent-user target.
 
 ## Security assessment
 

@@ -1,24 +1,18 @@
 "use client";
 import { useState, useEffect } from 'react';
-import { SearchForm } from './components/SearchForm';
-import { ResultsTable } from './components/ResultsTable';
+import { SearchForm, IntentSearch, ScrapeView, ResultsSkeleton } from '@/features/search';
+import { ResultsTable, SavedLeadsView } from '@/features/leads';
 import { CategoryManager } from './components/CategoryManager';
-import { IntentSearch } from './components/IntentSearch';
-import { SavedLeadsView } from './components/SavedLeadsView';
-import { SettingsView } from './components/SettingsView';
-import { BillingView } from './components/BillingView';
-import { ResultsSkeleton } from './components/ResultsSkeleton';
+import { SettingsView } from '@/features/shared';
+import { BillingView } from '@/features/billing';
 import { searchPlaces, PlaceResult, SearchFilters } from './services/gemini';
 import { motion } from 'motion/react';
 import { Map, Zap, Database, Search as SearchIcon, Settings, LayoutDashboard, Send, Target, ShieldCheck, AlertCircle, LogOut } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { Toaster, toast } from 'sonner';
-import { Logo } from './components/Logo';
-import { WelcomePopup } from './components/WelcomePopup';
-import { DashboardView } from './components/DashboardView';
-import { CampaignsView } from './components/CampaignsView';
-import { ScrapeView } from './components/ScrapeView';
-import { NotificationBell } from './components/NotificationBell';
+import { Logo } from '@/components/ui/atoms';
+import { WelcomePopup, NotificationBell, DashboardView } from '@/features/shared';
+import { CampaignsView } from '@/features/campaigns';
 
 import { useStore } from './store/useLeadStore';
 

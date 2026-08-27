@@ -1,6 +1,6 @@
 "use client";
 
-import { SuperAdminDashboard } from "@/views/SuperAdminDashboard";
+import { SuperAdminDashboard } from "@/features/admin";
 
 export default function SuperAdminPage() {
   return <SuperAdminDashboard />;

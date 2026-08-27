@@ -1,5 +1,5 @@
 import type { Metadata } from "next";
-import { AcceptInvitePage } from "@/views/AcceptInvitePage";
+import { AcceptInvitePage } from "@/features/auth";
 
 export const metadata: Metadata = {
   title: "Accept Invitation",
