@@ -2,11 +2,33 @@ import type { Metadata } from "next";
 import { LandingPage } from "@/views/LandingPage";
 
 export const metadata: Metadata = {
-  title: "CodieLead — AI-Powered B2B Lead Generation",
+  title: "CodieLead | AI-assisted B2B prospecting for better outbound",
   description:
-    "Describe your Ideal Customer Profile and let AI find real businesses for you using Google Maps and Google Search grounding. Export to CSV, Excel, or JSON instantly.",
+    "Turn your ideal customer profile into clean, outreach-ready B2B lead lists with AI-assisted search, multi-city targeting, enrichment, and campaigns.",
+  keywords: [
+    "B2B lead generation",
+    "AI prospecting",
+    "cold outreach",
+    "ICP search",
+    "sales lead lists",
+    "multi-city lead search",
+  ],
   alternates: {
     canonical: "/",
+  },
+  openGraph: {
+    title: "CodieLead | AI-assisted B2B prospecting",
+    description:
+      "Find the right businesses, keep your lists clean, and move from cold prospecting to a confident next step.",
+    type: "website",
+    url: "/",
+    siteName: "CodieLead",
+  },
+  twitter: {
+    card: "summary_large_image",
+    title: "CodieLead | AI-assisted B2B prospecting",
+    description:
+      "Turn your ICP into a clean, outreach-ready pipeline.",
   },
 };
 
@@ -25,31 +47,38 @@ const jsonLd = {
       sameAs: ["https://codiemarket.com"],
     },
     {
+      "@type": "WebSite",
+      "@id": "https://codie.ai/#website",
+      name: "CodieLead",
+      url: "https://codie.ai",
+      publisher: { "@id": "https://codie.ai/#organization" },
+      description:
+        "AI-assisted B2B prospecting and cold-outreach preparation for teams that need cleaner lead lists.",
+    },
+    {
       "@type": "SoftwareApplication",
       "@id": "https://codie.ai/#product",
       name: "CodieLead",
       applicationCategory: "BusinessApplication",
       operatingSystem: "Web",
       description:
-        "AI-powered B2B lead generation platform. Describe your Ideal Customer Profile and get real business leads from Google Maps and Google Search in seconds.",
+        "AI-assisted B2B prospecting that turns an ideal customer profile into deduplicated, outreach-ready business leads.",
       offers: {
         "@type": "Offer",
         price: "0",
         priceCurrency: "USD",
-        description: "Free tier available. Usage-based credits for AI lead discovery.",
+        description: "Free trial available. Paid plans scale with search volume.",
       },
       featureList: [
-        "AI-powered ICP lead search via Google Maps",
-        "Real-time streaming lead discovery",
-        "Lead enrichment with decision-maker data",
-        "CSV and Excel export",
-        "Campaign management",
-        "Category organization",
+        "AI-assisted ICP lead search",
+        "Google Maps and web-grounded business discovery",
         "Multi-city location filtering",
+        "Database-backed lead deduplication",
+        "Lead enrichment and fit signals",
+        "CSV and Excel export",
+        "Campaign preparation",
       ],
-      publisher: {
-        "@id": "https://codie.ai/#organization",
-      },
+      publisher: { "@id": "https://codie.ai/#organization" },
     },
     {
       "@type": "FAQPage",
@@ -59,23 +88,31 @@ const jsonLd = {
           name: "What is CodieLead?",
           acceptedAnswer: {
             "@type": "Answer",
-            text: "CodieLead is an AI-powered B2B lead generation platform that uses Google Maps and Google Search grounding to find real businesses matching your Ideal Customer Profile (ICP). It streams results in real time and lets you export leads to CSV or Excel.",
+            text: "CodieLead is a B2B prospecting workspace that turns an ideal customer profile into a clean list of businesses for outbound selling. It combines AI-assisted search, location targeting, enrichment, deduplication, and campaign preparation.",
           },
         },
         {
           "@type": "Question",
-          name: "How does the AI lead scraper work?",
+          name: "How does AI-assisted lead search work?",
           acceptedAnswer: {
             "@type": "Answer",
-            text: "You describe your target customer in plain English (your ICP). CodieLead sends this to the Gemini AI model with Google Maps grounding enabled. The AI searches Google Maps and returns matching businesses with names, addresses, phone numbers, websites, ratings, and direct Maps links.",
+            text: "You describe the companies you want in plain language. CodieLead uses the active AI search provider and connected business data to discover matching businesses, then streams the results into your workspace for review.",
           },
         },
         {
           "@type": "Question",
-          name: "What data does CodieLead return for each lead?",
+          name: "Can I search several cities at once?",
           acceptedAnswer: {
             "@type": "Answer",
-            text: "Each lead includes: business name, address, phone number, website, email (where available), Google Maps URL, star rating, price level, and business category.",
+            text: "Yes. Multi-city mode lets you select multiple locations in one search so you can expand a territory without rebuilding the same search from scratch.",
+          },
+        },
+        {
+          "@type": "Question",
+          name: "What can I do with the results?",
+          acceptedAnswer: {
+            "@type": "Answer",
+            text: "You can review business details, filter and sort results, save leads, export them to CSV or Excel, and add selected leads to campaigns using the existing workspace actions.",
           },
         },
       ],
@@ -94,4 +131,5 @@ export default function HomePage() {
     </>
   );
 }
-export const dynamic = 'force-dynamic';
+
+export const dynamic = "force-dynamic";

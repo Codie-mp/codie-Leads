@@ -158,118 +158,70 @@ export function AppLayout() {
       </div>
 
       {/* Navigation / Header */}
-      <div className="relative z-20 container mx-auto px-4 py-6 flex justify-between items-center">
-        <div className="flex items-center gap-2 group cursor-pointer" onClick={() => setView('search')}>
-          <Logo />
-        </div>
-        
-        <div className="flex bg-white/80 backdrop-blur-sm p-1 rounded-xl border border-gray-200 shadow-sm">
-          <button
-            onClick={() => setView('dashboard')}
-            className={cn(
-              "flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-medium transition-all",
-              view === 'dashboard' 
-                ? "bg-white text-blue-700 shadow-sm ring-1 ring-black/5" 
-                : "text-gray-500 hover:text-gray-900 hover:bg-gray-50"
-            )}
-          >
-            <LayoutDashboard className="w-4 h-4" />
-            Dashboard
+      <header className="sticky top-0 z-40 border-b border-slate-200/80 bg-[#f7f8fa]/90 backdrop-blur-xl">
+        <div className="container mx-auto flex flex-col gap-3 px-4 py-4 lg:flex-row lg:items-center lg:justify-between lg:py-5">
+          <button type="button" className="flex items-center gap-2 self-start" onClick={() => setView('dashboard')} aria-label="Go to workspace overview">
+            <Logo />
           </button>
-          <button
-            onClick={() => setView('search')}
-            className={cn(
-              "flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-medium transition-all",
-              view === 'search' 
-                ? "bg-white text-blue-700 shadow-sm ring-1 ring-black/5" 
-                : "text-gray-500 hover:text-gray-900 hover:bg-gray-50"
-            )}
-          >
-            <SearchIcon className="w-4 h-4" />
-            Search
-          </button>
-          <button
-            onClick={() => setView('scrape')}
-            className={cn(
-              "flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-medium transition-all",
-              view === 'scrape' 
-                ? "bg-white text-blue-700 shadow-sm ring-1 ring-black/5" 
-                : "text-gray-500 hover:text-gray-900 hover:bg-gray-50"
-            )}
-          >
-            <Target className="w-4 h-4" />
-            ICP Scraper
-          </button>
-          <button
-            onClick={() => setView('saved')}
-            className={cn(
-              "flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-medium transition-all",
-              view === 'saved' 
-                ? "bg-white text-blue-700 shadow-sm ring-1 ring-black/5" 
-                : "text-gray-500 hover:text-gray-900 hover:bg-gray-50"
-            )}
-          >
-            <Database className="w-4 h-4" />
-            Saved Leads
-          </button>
-          <button
-            onClick={() => setView('campaigns')}
-            className={cn(
-              "flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-medium transition-all",
-              view === 'campaigns' 
-                ? "bg-white text-blue-700 shadow-sm ring-1 ring-black/5" 
-                : "text-gray-500 hover:text-gray-900 hover:bg-gray-50"
-            )}
-          >
-            <Send className="w-4 h-4" />
-            Campaigns
-          </button>
-            <button
-              onClick={() => setView('settings')}
-              className={cn(
-                "px-4 py-2 rounded-lg text-sm font-semibold flex items-center gap-2 transition-all",
-                view === 'settings' ? "bg-white shadow-sm text-blue-600" : "text-gray-600 hover:text-gray-900 hover:bg-gray-50"
+
+          <div className="w-full overflow-x-auto lg:w-auto">
+            <div className="flex min-w-max items-center gap-1 rounded-xl border border-slate-200 bg-white/80 p-1 shadow-sm backdrop-blur-sm">
+              {[
+                { id: 'dashboard', label: 'Overview', icon: LayoutDashboard },
+                { id: 'search', label: 'Find leads', icon: SearchIcon },
+                { id: 'scrape', label: 'ICP scraper', icon: Target },
+                { id: 'saved', label: 'Saved leads', icon: Database },
+                { id: 'campaigns', label: 'Campaigns', icon: Send },
+                { id: 'settings', label: 'Settings', icon: Settings },
+                { id: 'billing', label: 'Billing', icon: Zap },
+              ].map(({ id, label, icon: Icon }) => (
+                <button
+                  key={id}
+                  onClick={() => setView(id as typeof view)}
+                  className={cn(
+                    "flex items-center gap-2 rounded-lg px-3 py-2 text-xs font-semibold transition-all sm:px-4 sm:text-sm",
+                    view === id ? "bg-slate-950 text-white shadow-sm" : "text-slate-500 hover:bg-slate-50 hover:text-slate-950"
+                  )}
+                >
+                  <Icon className="h-4 w-4" />
+                  {label}
+                </button>
+              ))}
+              <NotificationBell />
+              {!!user?.isSuperAdmin && (
+                <button
+                  onClick={() => router.push('/superadmin')}
+                  className="flex items-center gap-2 rounded-lg bg-slate-950 px-3 py-2 text-xs font-bold text-white transition hover:bg-blue-700 sm:px-4 sm:text-sm"
+                >
+                  <ShieldCheck className="h-4 w-4" />
+                  Admin
+                </button>
               )}
-            >
-              <Settings className="w-4 h-4" /> Settings
-            </button>
-            <button
-              onClick={() => setView('billing')}
-              className={cn(
-                "px-4 py-2 rounded-lg text-sm font-semibold flex items-center gap-2 transition-all",
-                view === 'billing' ? "bg-white shadow-sm text-emerald-600" : "text-gray-600 hover:text-gray-900 hover:bg-gray-50"
-              )}
-            >
-              <Zap className="w-4 h-4" /> Billing
-            </button>
-            <NotificationBell />
-          {!!user?.isSuperAdmin && (
-            <button
-              onClick={() => router.push('/superadmin')}
-              className="flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-bold bg-gray-900 text-white shadow-sm ring-1 ring-black/5 hover:bg-gray-800 transition-all ml-2"
-            >
-              <ShieldCheck className="w-4 h-4" />
-              Super Admin
-            </button>
-          )}
-          <button
-            onClick={() => {
-              logout();
-              router.push('/login');
-            }}
-            className="flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-semibold text-red-600 hover:text-red-700 hover:bg-red-50 transition-all ml-2"
-          >
-            <LogOut className="w-4 h-4" />
-          </button>
+              <button
+                onClick={() => {
+                  logout();
+                  router.push('/login');
+                }}
+                aria-label="Sign out"
+                className="flex items-center gap-2 rounded-lg px-3 py-2 text-xs font-semibold text-red-600 transition hover:bg-red-50 sm:px-4 sm:text-sm"
+              >
+                <LogOut className="h-4 w-4" />
+                <span className="hidden sm:inline">Sign out</span>
+              </button>
+            </div>
+          </div>
         </div>
-      </div>
+      </header>
 
       <div className="relative z-10 container mx-auto px-4 pb-20">
         {view === 'dashboard' ? (
-          <DashboardView onSelectRecentSearch={(q) => {
-            setSearchQuery(q);
-            setView('search');
-          }} />
+          <DashboardView
+            onSelectRecentSearch={(q) => {
+              setSearchQuery(q);
+              setView('search');
+            }}
+            onNavigateToView={(nextView) => setView(nextView)}
+          />
         ) : view === 'search' ? (
           <motion.div
             initial={{ opacity: 0 }}
@@ -282,19 +234,12 @@ export function AppLayout() {
               transition={{ duration: 0.6 }}
               className="text-center mb-12 mt-8"
             >
-              <h1 className="text-5xl md:text-7xl font-extrabold tracking-tight mb-6">
-                <span className="bg-clip-text text-transparent bg-gradient-to-r from-gray-900 via-blue-800 to-gray-900">
-                  Public Data,
-                </span>
-                <br />
-                <span className="bg-clip-text text-transparent bg-gradient-to-r from-yellow-500 via-blue-500 to-cyan-500">
-                  Wallah Simple.
-                </span>
+              <div className="mx-auto mb-5 inline-flex items-center gap-2 rounded-full border border-blue-200 bg-blue-50 px-3 py-1.5 text-xs font-bold uppercase tracking-[0.14em] text-blue-700"><Target className="h-3.5 w-3.5" /> Find your next accounts</div>
+              <h1 className="mx-auto max-w-3xl text-4xl font-semibold leading-[1.05] tracking-[-0.05em] text-slate-950 md:text-6xl">
+                Build an outreach list your team can actually work.
               </h1>
-              
-              <p className="text-xl text-gray-500 max-w-2xl mx-auto leading-relaxed">
-                The ultimate hack for GTM Engineers to find leads on Maps. 
-                Just type, search, and export. <span className="font-semibold text-blue-600">Yalla</span>, let's get to work.
+              <p className="mx-auto mt-5 max-w-2xl text-lg leading-8 text-slate-600">
+                Describe your ideal customer, choose the territory, and let CodieLead surface businesses worth a closer look.
               </p>
             </motion.div>
 
@@ -310,7 +255,7 @@ export function AppLayout() {
                 animate={{ opacity: 1 }}
                 className="text-center mt-12 text-gray-400"
               >
-                <p>Mafish results, <span className="font-medium">Habibi</span>. Try tweaking your search.</p>
+                <p>No matches yet. Try widening your ICP or adding another city.</p>
               </motion.div>
             )}
 
@@ -327,22 +272,22 @@ export function AppLayout() {
                   <div className="w-12 h-12 bg-blue-50 rounded-xl flex items-center justify-center mx-auto mb-4 text-blue-600">
                     <Map className="w-6 h-6" />
                   </div>
-                  <h3 className="font-bold text-gray-900 mb-2">Official Maps Data</h3>
-                  <p className="text-sm text-gray-500">Straight from Google. Wallah accurate.</p>
+                  <h3 className="font-bold text-gray-900 mb-2">Grounded business data</h3>
+                  <p className="text-sm text-gray-500">Start with real businesses and useful context.</p>
                 </div>
                 <div className="p-6 rounded-2xl bg-white/50 border border-white/50 shadow-sm backdrop-blur-sm">
                   <div className="w-12 h-12 bg-blue-50 rounded-xl flex items-center justify-center mx-auto mb-4 text-blue-600">
                     <Zap className="w-6 h-6" />
                   </div>
-                  <h3 className="font-bold text-gray-900 mb-2">Export Fast</h3>
-                  <p className="text-sm text-gray-500">CSV, Excel, or JSON. Khalas, you're done.</p>
+                  <h3 className="font-bold text-gray-900 mb-2">Clean list handoff</h3>
+                  <p className="text-sm text-gray-500">Save, export, or move selected leads to a campaign.</p>
                 </div>
                 <div className="p-6 rounded-2xl bg-white/50 border border-white/50 shadow-sm backdrop-blur-sm">
                   <div className="w-12 h-12 bg-yellow-50 rounded-xl flex items-center justify-center mx-auto mb-4 text-yellow-600">
                     <Star className="w-6 h-6" />
                   </div>
-                  <h3 className="font-bold text-gray-900 mb-2">Full Option</h3>
-                  <p className="text-sm text-gray-500">Ratings, websites, and phones. Everything you need, Boss.</p>
+                  <h3 className="font-bold text-gray-900 mb-2">Signal before action</h3>
+                  <p className="text-sm text-gray-500">Review ratings, websites, and fit before you reach out.</p>
                 </div>
               </motion.div>
             )}

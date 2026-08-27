@@ -2,28 +2,25 @@
 import React from 'react';
 import { useStore } from '@/store/useLeadStore';
 import { motion } from 'motion/react';
-import { 
-  Users, 
-  Target, 
-  CheckCircle2, 
-  TrendingUp, 
-  MousePointerClick, 
-  Eye, 
+import {
+  Users,
+  Target,
+  CheckCircle2,
+  TrendingUp,
+  MousePointerClick,
+  Eye,
   Clock,
-  ArrowUpRight,
   Briefcase,
   Zap,
   Search,
   History
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
-import { Lead } from '@/lib/schema';
-import { toast } from 'sonner';
 
-export function DashboardView({ onSelectRecentSearch }: { onSelectRecentSearch?: (query: string) => void }) {
-  const { leads, recentSearches, bulkUpdateLeads } = useStore();
+export function DashboardView({ onSelectRecentSearch, onNavigateToView }: { onSelectRecentSearch?: (query: string) => void; onNavigateToView?: (view: 'saved' | 'campaigns') => void }) {
+  const { leads, recentSearches } = useStore();
   const sortedRecentSearches = [...recentSearches].sort((a,b) => new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime()).slice(0, 5);
-  
+
   const stats = {
     total: leads.length,
     new: leads.filter(l => l.status === 'new').length,
@@ -52,36 +49,14 @@ export function DashboardView({ onSelectRecentSearch }: { onSelectRecentSearch?:
     .sort(([, a], [, b]) => b - a)
     .slice(0, 4);
 
-  const simulateEngagement = async () => {
-    const contactedLeads = leads.filter(l => l.status === 'contacted');
-    if (contactedLeads.length === 0) {
-      toast.error('No contacted leads to simulate engagement for, Habibi.');
-      return;
-    }
-
-    toast.promise(
-      bulkUpdateLeads(contactedLeads.map(l => l.id!), {
-        engagement: {
-          opens: 10,
-          clicks: 5,
-          lastActive: new Date()
-        }
-      }),
-      {
-        loading: 'Simulating engagement...',
-        success: 'Engagement data updated!',
-        error: 'Failed to simulate engagement'
-      }
-    );
-  };
-
   return (
     <div className="space-y-8 animate-in fade-in duration-700">
       {/* Header */}
-      <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
+      <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
         <div>
-          <h2 className="text-3xl font-bold text-gray-900">Revenue Dashboard</h2>
-          <p className="text-gray-500 mt-1">Welcome back, Boss. Here's your pipeline status.</p>
+          <p className="text-xs font-bold uppercase tracking-[0.16em] text-blue-700">Workspace overview</p>
+          <h2 className="mt-2 text-3xl font-semibold tracking-[-0.04em] text-slate-950">Make the next account easier to reach.</h2>
+          <p className="mt-2 text-slate-500">Track your lead inventory, recent searches, and outreach momentum from one place.</p>
         </div>
         <div className="flex items-center gap-2 text-sm font-medium text-blue-600 bg-blue-50 px-4 py-2 rounded-full border border-blue-100">
           <Clock className="w-4 h-4" />
@@ -91,32 +66,28 @@ export function DashboardView({ onSelectRecentSearch }: { onSelectRecentSearch?:
 
       {/* Stats Grid */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-        <StatCard 
-          title="Total Leads" 
-          value={stats.total} 
-          icon={Users} 
-          trend="+12%" 
+        <StatCard
+          title="Total Leads"
+          value={stats.total}
+          icon={Users}
           color="blue"
         />
-        <StatCard 
-          title="Qualified" 
-          value={stats.qualified} 
-          icon={Target} 
-          trend="+5%" 
+        <StatCard
+          title="Qualified"
+          value={stats.qualified}
+          icon={Target}
           color="purple"
         />
-        <StatCard 
-          title="Won Deals" 
-          value={stats.won} 
-          icon={CheckCircle2} 
-          trend="+2%" 
+        <StatCard
+          title="Won Deals"
+          value={stats.won}
+          icon={CheckCircle2}
           color="green"
         />
-        <StatCard 
-          title="Conversion" 
-          value={`${conversionRate}%`} 
-          icon={TrendingUp} 
-          trend="+1.5%" 
+        <StatCard
+          title="Conversion"
+          value={`${conversionRate}%`}
+          icon={TrendingUp}
           color="orange"
         />
       </div>
@@ -128,14 +99,14 @@ export function DashboardView({ onSelectRecentSearch }: { onSelectRecentSearch?:
             <div className="flex items-center justify-between mb-6">
               <h3 className="font-bold text-gray-900 flex items-center gap-2">
                 <Zap className="w-5 h-5 text-yellow-500" />
-                Pipeline Health
+                Pipeline health
               </h3>
               <div className="flex gap-2">
                 {['new', 'contacted', 'qualified', 'customer'].map(s => (
                   <div key={s} className="flex items-center gap-1.5">
-                    <div className={cn("w-2 h-2 rounded-full", 
-                      s === 'new' ? 'bg-blue-400' : 
-                      s === 'contacted' ? 'bg-blue-400' : 
+                    <div className={cn("w-2 h-2 rounded-full",
+                      s === 'new' ? 'bg-blue-400' :
+                      s === 'contacted' ? 'bg-blue-400' :
                       s === 'qualified' ? 'bg-orange-400' : 'bg-green-400'
                     )} />
                     <span className="text-[10px] uppercase font-bold text-gray-400">{s}</span>
@@ -143,7 +114,7 @@ export function DashboardView({ onSelectRecentSearch }: { onSelectRecentSearch?:
                 ))}
               </div>
             </div>
-            
+
             <div className="h-48 flex items-end gap-4 px-2">
               {[stats.new, stats.contacted, stats.qualified, stats.won].map((val, i) => {
                 const max = Math.max(stats.new, stats.contacted, stats.qualified, stats.won, 1);
@@ -152,7 +123,7 @@ export function DashboardView({ onSelectRecentSearch }: { onSelectRecentSearch?:
                 return (
                   <div key={i} className="flex-1 flex flex-col items-center gap-2 group">
                     <div className="relative w-full flex flex-col items-center">
-                       <div 
+                       <div
                         className={cn("w-full rounded-t-lg transition-all duration-1000 ease-out relative", colors[i])}
                         style={{ height: `${height}%`, minHeight: '4px' }}
                       >
@@ -185,7 +156,7 @@ export function DashboardView({ onSelectRecentSearch }: { onSelectRecentSearch?:
           <div className="bg-white rounded-2xl border border-gray-200 shadow-sm overflow-hidden">
             <div className="p-6 border-b border-gray-100 flex items-center justify-between">
               <h3 className="font-bold text-gray-900">Recent Activity</h3>
-              <button className="text-xs text-blue-600 font-semibold hover:underline">View All</button>
+              <span className="text-xs font-semibold text-slate-400">Latest 5</span>
             </div>
             <div className="divide-y divide-gray-50">
               {recentLeads.length > 0 ? recentLeads.map((lead) => (
@@ -210,8 +181,10 @@ export function DashboardView({ onSelectRecentSearch }: { onSelectRecentSearch?:
                   </div>
                 </div>
               )) : (
-                <div className="p-12 text-center text-gray-400 italic">
-                  No leads yet, Habibi. Start searching!
+                <div className="p-12 text-center text-gray-500">
+                  <p className="font-semibold text-slate-900">Your lead inventory is empty.</p>
+                  <p className="mt-1 text-sm">Start with one clear ICP brief and build from there.</p>
+                  <button type="button" onClick={() => onSelectRecentSearch?.('')} className="mt-4 rounded-lg bg-slate-950 px-4 py-2 text-xs font-bold text-white transition hover:bg-blue-700">Find your first leads</button>
                 </div>
               )}
             </div>
@@ -259,27 +232,24 @@ export function DashboardView({ onSelectRecentSearch }: { onSelectRecentSearch?:
           <div className="bg-white p-6 rounded-2xl border border-gray-200 shadow-sm">
             <h3 className="font-bold text-gray-900 mb-4">Quick Actions</h3>
             <div className="grid grid-cols-2 gap-3">
-              <button 
-                onClick={() => onSelectRecentSearch && onSelectRecentSearch('')} 
-                className="p-3 rounded-xl bg-gray-50 hover:bg-gray-100 transition-colors text-center group"
+              <button
+                onClick={() => onSelectRecentSearch?.('')}
+                className="rounded-xl bg-slate-50 p-3 text-center transition-colors hover:bg-blue-50 group"
               >
-                <SearchIcon className="w-5 h-5 mx-auto mb-2 text-gray-400 group-hover:text-blue-600" />
-                <span className="text-[10px] font-bold uppercase text-gray-500">New Search</span>
+                <SearchIcon className="mx-auto mb-2 h-5 w-5 text-slate-400 group-hover:text-blue-600" />
+                <span className="text-[10px] font-bold uppercase text-slate-500">New search</span>
               </button>
-              <button className="p-3 rounded-xl bg-gray-50 hover:bg-gray-100 transition-colors text-center group">
-                <Briefcase className="w-5 h-5 mx-auto mb-2 text-gray-400 group-hover:text-blue-600" />
-                <span className="text-[10px] font-bold uppercase text-gray-500">View Leads</span>
+              <button onClick={() => onNavigateToView?.('saved')} className="rounded-xl bg-slate-50 p-3 text-center transition-colors hover:bg-blue-50 group">
+                <Briefcase className="mx-auto mb-2 h-5 w-5 text-slate-400 group-hover:text-blue-600" />
+                <span className="text-[10px] font-bold uppercase text-slate-500">Saved leads</span>
               </button>
-              <button 
-                onClick={simulateEngagement}
-                className="p-3 rounded-xl bg-gray-50 hover:bg-gray-100 transition-colors text-center group"
-              >
-                <Zap className="w-5 h-5 mx-auto mb-2 text-gray-400 group-hover:text-yellow-600" />
-                <span className="text-[10px] font-bold uppercase text-gray-500">Simulate Engagement</span>
+              <button onClick={() => onNavigateToView?.('campaigns')} className="rounded-xl bg-slate-50 p-3 text-center transition-colors hover:bg-blue-50 group">
+                <SendIcon className="mx-auto mb-2 h-5 w-5 text-slate-400 group-hover:text-blue-600" />
+                <span className="text-[10px] font-bold uppercase text-slate-500">Campaigns</span>
               </button>
             </div>
           </div>
-          
+
           {/* Recent Searches */}
           <div className="bg-white p-6 rounded-2xl border border-gray-200 shadow-sm">
             <h3 className="font-bold text-gray-900 mb-4 flex items-center gap-2">
@@ -288,7 +258,7 @@ export function DashboardView({ onSelectRecentSearch }: { onSelectRecentSearch?:
             </h3>
             <div className="space-y-3">
               {sortedRecentSearches.length > 0 ? sortedRecentSearches.map((search) => (
-                <button 
+                <button
                   key={search.id}
                   onClick={() => onSelectRecentSearch && onSelectRecentSearch(search.query)}
                   className="w-full text-left p-3 rounded-xl border border-gray-100 hover:border-blue-200 hover:bg-blue-50 transition-colors flex items-center justify-between group"
@@ -310,11 +280,10 @@ export function DashboardView({ onSelectRecentSearch }: { onSelectRecentSearch?:
   );
 }
 
-function StatCard({ title, value, icon: Icon, trend, color }: { 
-  title: string; 
-  value: string | number; 
-  icon: any; 
-  trend: string;
+function StatCard({ title, value, icon: Icon, color }: {
+  title: string;
+  value: string | number;
+  icon: any;
   color: 'blue' | 'purple' | 'green' | 'orange';
 }) {
   const colors = {
@@ -330,10 +299,7 @@ function StatCard({ title, value, icon: Icon, trend, color }: {
         <div className={cn("p-3 rounded-xl border", colors[color])}>
           <Icon className="w-6 h-6" />
         </div>
-        <div className="flex items-center gap-1 text-green-600 text-xs font-bold">
-          <ArrowUpRight className="w-3 h-3" />
-          {trend}
-        </div>
+
       </div>
       <div>
         <div className="text-2xl font-bold text-gray-900">{value}</div>
@@ -343,16 +309,25 @@ function StatCard({ title, value, icon: Icon, trend, color }: {
   );
 }
 
+function SendIcon({ className }: { className?: string }) {
+  return (
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={className}>
+      <path d="m22 2-7 20-4-9-9-4Z" />
+      <path d="M22 2 11 13" />
+    </svg>
+  );
+}
+
 function SearchIcon({ className }: { className?: string }) {
   return (
-    <svg 
-      xmlns="http://www.w3.org/2000/svg" 
-      viewBox="0 0 24 24" 
-      fill="none" 
-      stroke="currentColor" 
-      strokeWidth="2" 
-      strokeLinecap="round" 
-      strokeLinejoin="round" 
+    <svg
+      xmlns="http://www.w3.org/2000/svg"
+      viewBox="0 0 24 24"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth="2"
+      strokeLinecap="round"
+      strokeLinejoin="round"
       className={className}
     >
       <circle cx="11" cy="11" r="8" />
