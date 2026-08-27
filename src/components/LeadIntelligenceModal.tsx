@@ -314,7 +314,7 @@ export function LeadIntelligenceModal({ isOpen, onClose, lead }: LeadIntelligenc
             <div>
               <h4 className="font-bold text-blue-900">The Scoop ☕</h4>
               <p className="text-sm text-blue-700 mt-1">
-                Gemini did the homework on this business. Here's the inside info.
+                Gemini did the homework on this business. Here&apos;s the inside info.
               </p>
             </div>
           </div>
@@ -448,7 +448,7 @@ export function LeadIntelligenceModal({ isOpen, onClose, lead }: LeadIntelligenc
                     <h3>The Killer Line</h3>
                   </div>
                   <p className="text-sm text-blue-900 italic border-l-2 border-blue-300 pl-3 py-1">
-                    "{data.iceBreaker}"
+                    &quot;{data.iceBreaker}&quot;
                   </p>
                 </motion.div>
 

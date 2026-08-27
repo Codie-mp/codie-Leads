@@ -143,7 +143,7 @@ export function ScrapeView({ onNavigateToSaved }: ScrapeViewProps) {
         </div>
         <h2 className="text-3xl font-extrabold text-gray-900 tracking-tight">ICP Web Scraper</h2>
         <p className="text-gray-500 max-w-lg mx-auto">
-          Describe your Ideal Customer Profile (ICP). We'll use the Gemini Google Search grounding feature to scrape exactly what you're looking for across the whole web.
+          Describe your Ideal Customer Profile (ICP). We&apos;ll use the Gemini Google Search grounding feature to scrape exactly what you&apos;re looking for across the whole web.
         </p>
       </div>
 

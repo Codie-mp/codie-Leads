@@ -384,7 +384,7 @@ export const LoginPage: React.FC = () => {
 
             {(view === 'verify' || view === 'reset-password') && (
                <div className="text-sm text-center">
-                Didn't receive the code?{' '}
+                Didn&apos;t receive the code?{' '}
                 <button
                   type="button"
                   disabled={isLoading || resendCooldown > 0}
@@ -420,7 +420,7 @@ export const LoginPage: React.FC = () => {
               <div className="text-center mt-4 text-sm text-gray-600">
                 {view === 'login' ? (
                   <>
-                    Don't have an account?{' '}
+                    Don&apos;t have an account?{' '}
                     <button type="button" onClick={() => setView('register')} className="font-medium text-blue-600 hover:text-blue-500 bg-transparent border-none p-0 cursor-pointer">
                       Sign up
                     </button>

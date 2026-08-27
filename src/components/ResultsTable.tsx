@@ -3,7 +3,6 @@ import React, { useState, useMemo, Fragment } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
 import { Download, ExternalLink, MapPin, Phone, Star, FileJson, FileSpreadsheet, DollarSign, Save, Check, TrendingUp, ArrowUp, ArrowDown, ChevronsUpDown, Filter, X, ChevronLeft, ChevronRight, Send, Square, CheckSquare, ChevronDown, ChevronUp } from 'lucide-react';
 import Papa from 'papaparse';
-import * as XLSX from 'xlsx';
 import { PlaceResult } from '@/services/gemini';
 import { useStore } from '@/store/useLeadStore';
 import { toast } from 'sonner';
@@ -213,11 +212,18 @@ export function ResultsTable({ places, isLoading }: ResultsTableProps) {
   };
 
   const handleExportExcel = () => {
-    const ws = XLSX.utils.json_to_sheet(processedPlaces);
-    const wb = XLSX.utils.book_new();
-    XLSX.utils.book_append_sheet(wb, ws, "Leads");
-    XLSX.writeFile(wb, "codie_leads.xlsx");
-    toast.success('Exported to Excel');
+    const csv = Papa.unparse(processedPlaces);
+    const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
+    const link = document.createElement('a');
+    const url = URL.createObjectURL(blob);
+    link.setAttribute('href', url);
+    link.setAttribute('download', 'codie_leads_spreadsheet.csv');
+    link.style.visibility = 'hidden';
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+    URL.revokeObjectURL(url);
+    toast.success('Exported spreadsheet-compatible CSV');
   };
 
   const handleExportJSON = () => {
@@ -656,7 +662,7 @@ export function ResultsTable({ places, isLoading }: ResultsTableProps) {
                             <div>
                               <h5 className="text-xs font-bold uppercase tracking-wider text-gray-500 mb-2 border-b border-gray-200 pb-1">AI Review Summary</h5>
                               <p className="text-sm text-gray-700 italic border-l-2 border-blue-300 pl-3">
-                                "{place.reviewsSummary !== 'N/A' ? place.reviewsSummary : 'No comprehensive review summary available for this location.'}"
+                                &quot;{place.reviewsSummary !== 'N/A' ? place.reviewsSummary : 'No comprehensive review summary available for this location.'}&quot;
                               </p>
                             </div>
                           </div>
